@@ -1,6 +1,6 @@
 {
-
-  "style": "base-rhea",
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "radix-rhea",
   "rsc": true,
   "tsx": true,
   "tailwind": {
