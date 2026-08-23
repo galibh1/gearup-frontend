@@ -1,15 +1,21 @@
 import UserTable from "./_components/UserTable";
 import GearTable from "./_components/GearTable";
+import RentalTable from "./_components/RentalTable";
+
 
 import { fetchUsers } from "./_actions/admin.actions";
 
+
 import {
   getAllGear,
+  getAllRentals,
 } from "@/services/admin.service";
 
 
 
+
 export default async function AdminDashboard(){
+
 
 
   const usersResult =
@@ -17,8 +23,17 @@ export default async function AdminDashboard(){
 
 
 
+
   const gearResult =
     await getAllGear();
+
+
+
+
+  const rentalResult =
+    await getAllRentals();
+
+
 
 
 
@@ -46,6 +61,7 @@ export default async function AdminDashboard(){
 
 
 
+
   return (
 
     <main
@@ -55,6 +71,7 @@ export default async function AdminDashboard(){
       p-8
       "
     >
+
 
 
 
@@ -74,7 +91,8 @@ export default async function AdminDashboard(){
 
 
 
-      {/* Statistics */}
+
+      {/* Statistics Cards */}
 
       <div
         className="
@@ -86,6 +104,9 @@ export default async function AdminDashboard(){
       >
 
 
+
+
+        {/* Users */}
 
         <div
           className="
@@ -112,7 +133,9 @@ export default async function AdminDashboard(){
             "
           >
 
-            {usersResult.data.length}
+            {
+              usersResult.data.length
+            }
 
           </h2>
 
@@ -123,6 +146,9 @@ export default async function AdminDashboard(){
 
 
 
+
+
+        {/* Gear */}
 
         <div
           className="
@@ -150,9 +176,7 @@ export default async function AdminDashboard(){
           >
 
             {
-              gearResult.success
-              ? gearResult.data.length
-              : 0
+              gearResult.data.length
             }
 
           </h2>
@@ -164,6 +188,9 @@ export default async function AdminDashboard(){
 
 
 
+
+
+        {/* Rentals */}
 
         <div
           className="
@@ -190,7 +217,9 @@ export default async function AdminDashboard(){
             "
           >
 
-            0
+            {
+              rentalResult.data.length
+            }
 
           </h2>
 
@@ -199,7 +228,9 @@ export default async function AdminDashboard(){
 
 
 
+
       </div>
+
 
 
 
@@ -222,22 +253,34 @@ export default async function AdminDashboard(){
 
 
 
+
       {/* Gear Moderation */}
 
-      {
-        gearResult.success && (
+      <GearTable
 
-          <GearTable
+        gears={
+          gearResult.data
+        }
 
-            gears={
-              gearResult.data
-            }
+      />
 
-          />
 
-        )
-      }
 
+
+
+
+
+
+
+      {/* Rental Moderation */}
+
+      <RentalTable
+
+        rentals={
+          rentalResult.data
+        }
+
+      />
 
 
 
