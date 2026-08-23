@@ -2,6 +2,7 @@
 
 
 import {useState} from "react";
+import {useRouter} from "next/navigation";
 
 import {createRental}
 from "../_actions/rental.actions";
@@ -22,6 +23,10 @@ gearId:string
 }){
 
 
+const router = useRouter();
+
+
+
 const [startDate,setStartDate]
 =
 useState<Date>();
@@ -35,6 +40,7 @@ useState<Date>();
 const [loading,setLoading]
 =
 useState(false);
+
 
 
 
@@ -61,7 +67,6 @@ setLoading(true);
 
 
 
-const result =
 await createRental({
 
 startDate:
@@ -89,8 +94,6 @@ quantity:1
 
 
 
-console.log(result);
-
 
 alert(
 "Rental created successfully"
@@ -98,30 +101,44 @@ alert(
 
 
 
+router.push(
+"/dashboard/rentals"
+);
+
+
+
 }
+
 
 catch(error:any){
 
+
 alert(
-error.message
+error.message ||
+"Something went wrong"
 );
 
 
 }
 
+
+
 finally{
+
 
 setLoading(false);
 
-}
-
 
 }
 
 
 
+}
 
-return(
+
+
+
+return (
 
 <div>
 
@@ -134,7 +151,6 @@ gap-5
 
 
 <div>
-
 
 <label className="
 block mb-2
@@ -160,7 +176,6 @@ onChange={setStartDate}
 
 
 <div>
-
 
 <label className="
 block mb-2
@@ -188,6 +203,7 @@ onChange={setEndDate}
 
 
 
+
 <button
 
 onClick={handleRental}
@@ -201,6 +217,8 @@ text-white
 px-8
 py-3
 rounded-xl
+hover:bg-gray-800
+transition
 "
 
 >
@@ -218,9 +236,10 @@ loading
 </button>
 
 
+
 </div>
 
+);
 
-)
 
 }
