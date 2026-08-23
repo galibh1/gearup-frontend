@@ -1,34 +1,35 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
+import RentalForm from "../../_components/RentalForm";
+
+
+const API_URL =
+  process.env.BACKEND_API_URL ||
+  "http://localhost:8000";
+
+
 
 async function getGear(id:string){
 
 
-const response = await fetch(
-
-`${process.env.BACKEND_API_URL}/api/gear/${id}`,
-
-{
-cache:"no-store"
-}
-
-);
+  const response = await fetch(
+    `${API_URL}/api/gear/${id}`,
+    {
+      cache:"no-store"
+    }
+  );
 
 
-
-if(!response.ok){
-
-return null;
-
-}
+  if(!response.ok){
+    return null;
+  }
 
 
+  const result = await response.json();
 
-const result = await response.json();
 
-
-return result.data || result;
+  return result.data ?? result;
 
 
 }
@@ -39,55 +40,45 @@ return result.data || result;
 
 export default async function GearDetailsPage({
 
-params
+params,
 
 }:{
 
-params:{
-id:string
-}
+params: Promise<{
+ id:string
+}>
 
 }){
 
 
-const gear = await getGear(params.id);
+const {id}= await params;
+
+
+
+const gear = await getGear(id);
 
 
 
 if(!gear){
 
-notFound();
+ notFound();
 
 }
 
 
 
 
-const images =
+const image =
 
-gear.imageUrls?.length > 0
+gear.imageUrls?.[0] &&
+
+!gear.imageUrls[0].includes("example.com")
 
 ?
 
-gear.imageUrls.filter(
-
-(img:string)=>
-!img.includes("example.com")
-
-)
+gear.imageUrls[0]
 
 :
-
-[];
-
-
-
-
-const mainImage =
-
-images[0]
-
-||
 
 "/placeholder-gear.jpg";
 
@@ -97,49 +88,35 @@ images[0]
 
 return (
 
-<main
+<main className="
+min-h-screen
+bg-gray-50
+py-10
+px-5
+">
 
-className="
-max-w-7xl
+
+<div className="
+max-w-6xl
 mx-auto
-p-8
-"
-
->
-
-
-<div
-
-className="
-grid
-lg:grid-cols-2
-gap-10
-"
-
->
-
-
-
-{/* IMAGE SECTION */}
-
-
-<div>
-
-
-<div
-
-className="
-relative
-h-[450px]
+bg-white
 rounded-3xl
+shadow-xl
 overflow-hidden
-"
+grid
+md:grid-cols-2
+">
 
->
+
+<div className="
+relative
+h-[500px]
+">
+
 
 <Image
 
-src={mainImage}
+src={image}
 
 alt={gear.name}
 
@@ -147,58 +124,7 @@ fill
 
 priority
 
-className="
-object-cover
-"
-
-/>
-
-
-</div>
-
-
-
-
-<div
-
-className="
-grid
-grid-cols-3
-gap-4
-mt-5
-"
-
->
-
-
-{
-
-images.slice(1,4).map(
-
-(img:string,index:number)=>(
-
-
-<div
-
-key={index}
-
-className="
-relative
-h-28
-rounded-xl
-overflow-hidden
-"
-
->
-
-
-<Image
-
-src={img}
-
-alt={gear.name}
-
-fill
+sizes="(max-width: 768px) 100vw, 50vw"
 
 className="
 object-cover
@@ -207,42 +133,22 @@ object-cover
 />
 
 
-
-</div>
-
-
-)
-
-)
-
-
-}
-
-
-</div>
-
-
 </div>
 
 
 
 
 
-{/* DETAILS SECTION */}
+<div className="
+p-10
+">
 
 
-<div>
-
-
-
-<h1
-
-className="
-text-5xl
+<h1 className="
+text-4xl
 font-bold
-"
-
->
+text-gray-900
+">
 
 {gear.name}
 
@@ -251,376 +157,106 @@ font-bold
 
 
 
-<p
-
-className="
-mt-4
-text-gray-600
+<p className="
+mt-5
+text-gray-500
 text-lg
-"
+">
 
->
-
-{gear.description}
+{
+gear.description ||
+"Premium gear available for rental."
+}
 
 </p>
 
 
 
 
-
-<div
-
-className="
-flex
-gap-3
-mt-5
-"
-
->
+<div className="mt-8">
 
 
-<span
-
-className="
-bg-blue-100
-text-blue-700
-px-4
-py-2
-rounded-full
-"
-
->
-
-{gear.category?.name}
-
-</span>
-
-
-
-<span
-
-className="
-bg-green-100
-text-green-700
-px-4
-py-2
-rounded-full
-"
-
->
-
-{
-gear.availableStock > 0
-
-?
-
-"Available"
-
-:
-
-"Unavailable"
-
-}
-
-</span>
-
-
-
-</div>
-
-
-
-
-
-<div
-
-className="
-mt-8
-"
-
->
-
-
-<h2
-
-className="
-text-3xl
-font-bold
-"
-
->
-
-${gear.pricePerDay}/day
-
-</h2>
-
-
-</div>
-
-
-
-
-
-{/* PROVIDER */}
-
-
-<div
-
-className="
-mt-8
-bg-gray-50
-rounded-2xl
-p-5
-"
-
->
-
-
-<h3
-
-className="
-font-bold
-text-xl
-"
-
->
+<p className="text-gray-500">
 
 Provider
 
-</h3>
-
-
-
-<p
-
-className="
-mt-2
-"
-
->
-
-{gear.provider?.name}
-
 </p>
 
 
-
-<p
-
-className="
-text-gray-500
-"
-
->
-
-{gear.provider?.email}
-
-</p>
-
-
-</div>
-
-
-
-
-
-{/* SPECIFICATION */}
-
-
-
-{
-
-gear.specifications &&
-
-
-<div
-
-className="
-mt-8
-"
-
->
-
-
-<h3
-
-className="
-text-2xl
-font-bold
-mb-3
-"
-
->
-
-Specifications
-
-</h3>
-
-
-
-<pre
-
-className="
-bg-gray-100
-rounded-xl
-p-5
-overflow-auto
-"
-
->
-
-{
-JSON.stringify(
-gear.specifications,
-null,
-2
-)
-}
-
-</pre>
-
-
-
-</div>
-
-
-
-}
-
-
-
-
-
-
-{/* RENT BOX */}
-
-
-
-<div
-
-className="
-mt-8
-border
-rounded-2xl
-p-6
-shadow-sm
-"
-
->
-
-
-
-<h3
-
-className="
-text-2xl
-font-bold
-"
-
->
-
-Rent This Gear
-
-</h3>
-
-
-
-<p
-
-className="
-mt-3
-text-gray-500
-"
-
->
-
-Select rental dates and continue to checkout.
-
-</p>
-
-
-
-<div
-
-className="
-grid
-md:grid-cols-2
-gap-4
-mt-5
-"
-
->
-
-
-<input
-
-type="date"
-
-className="
-border
-rounded-xl
-p-3
-"
-
-/>
-
-
-<input
-
-type="date"
-
-className="
-border
-rounded-xl
-p-3
-"
-
-/>
-
-
-
-</div>
-
-
-
-
-<button
-
-className="
-mt-6
-w-full
-bg-black
-text-white
-py-4
-rounded-xl
+<h3 className="
+text-xl
 font-semibold
-hover:bg-gray-800
-"
+">
 
->
+{
+gear.provider?.name ||
+"GearUp Provider"
+}
 
-Rent Now
-
-</button>
+</h3>
 
 
+</div>
+
+
+
+
+<div className="
+mt-8
+inline-block
+bg-green-100
+text-green-700
+px-5
+py-2
+rounded-full
+">
+
+AVAILABLE
 
 </div>
 
 
 
 
+
+<div className="
+mt-8
+text-4xl
+font-bold
+text-green-600
+">
+
+${gear.pricePerDay}/day
+
 </div>
 
 
+
+
+
+<hr className="my-8"/>
+
+
+
+
+
+<RentalForm
+
+gearId={gear.id}
+
+/>
+
+
+
+
+
+</div>
 
 
 </div>
 
 
 </main>
-
 
 )
 
