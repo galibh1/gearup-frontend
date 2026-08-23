@@ -1,26 +1,36 @@
-import api from "@/lib/api";
+const API_URL =
+process.env.NEXT_PUBLIC_API_URL;
 
 
-export const getAllGear = async()=>{
+
+export const getAllGear = async () => {
+
 
     const response =
-        await api.get("/gear");
+    await fetch(
+        `${API_URL}/gear`,
+        {
+            cache:"no-store"
+        }
+    );
 
 
-    return response.data;
 
-};
-
-
-
-export const getGearById = async(
-    id:string
-)=>{
-
-    const response =
-        await api.get(`/gear/${id}`);
+    const result =
+    await response.json();
 
 
-    return response.data;
+
+    if(!response.ok){
+
+        throw new Error(
+            result.message ||
+            "Failed to fetch gear"
+        );
+
+    }
+
+
+    return result;
 
 };

@@ -1,35 +1,50 @@
 "use server";
 
 
-export async function getGears(){
-
-    try{
-
-        const response = await fetch(
-            `${process.env.BACKEND_API_URL}/api/gears`,
-            {
-                cache:"no-store"
-            }
-        );
+export async function getAllGear(){
 
 
-        const result = await response.json();
+try{
 
 
-        if(!response.ok){
-            return [];
-        }
+const response = await fetch(
+
+`${process.env.BACKEND_API_URL}/api/gear`,
+
+{
+cache:"no-store"
+}
+
+);
 
 
-        return result.data || result;
+
+const result = await response.json();
 
 
-    }catch(error){
 
-        console.log(error);
+if(!response.ok){
 
-        return [];
+return [];
 
-    }
+}
+
+
+
+return result.data || result;
+
+
+
+}catch(error){
+
+
+console.log(error);
+
+
+return [];
+
+
+}
+
 
 }
