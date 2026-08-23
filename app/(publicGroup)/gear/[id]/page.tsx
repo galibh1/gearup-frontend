@@ -2,7 +2,6 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 
 
-
 async function getGear(id:string){
 
 
@@ -51,7 +50,6 @@ id:string
 }){
 
 
-
 const gear = await getGear(params.id);
 
 
@@ -64,16 +62,32 @@ notFound();
 
 
 
-const image =
 
-gear.imageUrls?.[0] &&
-!gear.imageUrls[0].includes("example.com")
+const images =
+
+gear.imageUrls?.length > 0
 
 ?
 
-gear.imageUrls[0]
+gear.imageUrls.filter(
+
+(img:string)=>
+!img.includes("example.com")
+
+)
 
 :
+
+[];
+
+
+
+
+const mainImage =
+
+images[0]
+
+||
 
 "/placeholder-gear.jpg";
 
@@ -83,40 +97,58 @@ gear.imageUrls[0]
 
 return (
 
+<main
+
+className="
+max-w-7xl
+mx-auto
+p-8
+"
+
+>
+
 
 <div
 
 className="
-max-w-5xl
-mx-auto
-p-10
+grid
+lg:grid-cols-2
+gap-10
 "
 
 >
+
+
+
+{/* IMAGE SECTION */}
+
+
+<div>
 
 
 <div
 
 className="
 relative
-h-[400px]
+h-[450px]
+rounded-3xl
+overflow-hidden
 "
 
 >
 
 <Image
 
-src={image}
+src={mainImage}
 
 alt={gear.name}
 
 fill
 
-sizes="100vw"
+priority
 
 className="
 object-cover
-rounded-2xl
 "
 
 />
@@ -126,12 +158,88 @@ rounded-2xl
 
 
 
+
+<div
+
+className="
+grid
+grid-cols-3
+gap-4
+mt-5
+"
+
+>
+
+
+{
+
+images.slice(1,4).map(
+
+(img:string,index:number)=>(
+
+
+<div
+
+key={index}
+
+className="
+relative
+h-28
+rounded-xl
+overflow-hidden
+"
+
+>
+
+
+<Image
+
+src={img}
+
+alt={gear.name}
+
+fill
+
+className="
+object-cover
+"
+
+/>
+
+
+
+</div>
+
+
+)
+
+)
+
+
+}
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+{/* DETAILS SECTION */}
+
+
+<div>
+
+
+
 <h1
 
 className="
-text-4xl
+text-5xl
 font-bold
-mt-8
 "
 
 >
@@ -146,8 +254,8 @@ mt-8
 <p
 
 className="
-text-gray-600
 mt-4
+text-gray-600
 text-lg
 "
 
@@ -160,11 +268,83 @@ text-lg
 
 
 
+
 <div
 
 className="
-mt-6
-text-green-600
+flex
+gap-3
+mt-5
+"
+
+>
+
+
+<span
+
+className="
+bg-blue-100
+text-blue-700
+px-4
+py-2
+rounded-full
+"
+
+>
+
+{gear.category?.name}
+
+</span>
+
+
+
+<span
+
+className="
+bg-green-100
+text-green-700
+px-4
+py-2
+rounded-full
+"
+
+>
+
+{
+gear.availableStock > 0
+
+?
+
+"Available"
+
+:
+
+"Unavailable"
+
+}
+
+</span>
+
+
+
+</div>
+
+
+
+
+
+<div
+
+className="
+mt-8
+"
+
+>
+
+
+<h2
+
+className="
 text-3xl
 font-bold
 "
@@ -173,19 +353,249 @@ font-bold
 
 ${gear.pricePerDay}/day
 
+</h2>
+
+
 </div>
+
+
+
+
+
+{/* PROVIDER */}
+
+
+<div
+
+className="
+mt-8
+bg-gray-50
+rounded-2xl
+p-5
+"
+
+>
+
+
+<h3
+
+className="
+font-bold
+text-xl
+"
+
+>
+
+Provider
+
+</h3>
+
+
+
+<p
+
+className="
+mt-2
+"
+
+>
+
+{gear.provider?.name}
+
+</p>
+
+
+
+<p
+
+className="
+text-gray-500
+"
+
+>
+
+{gear.provider?.email}
+
+</p>
+
+
+</div>
+
+
+
+
+
+{/* SPECIFICATION */}
+
+
+
+{
+
+gear.specifications &&
+
+
+<div
+
+className="
+mt-8
+"
+
+>
+
+
+<h3
+
+className="
+text-2xl
+font-bold
+mb-3
+"
+
+>
+
+Specifications
+
+</h3>
+
+
+
+<pre
+
+className="
+bg-gray-100
+rounded-xl
+p-5
+overflow-auto
+"
+
+>
+
+{
+JSON.stringify(
+gear.specifications,
+null,
+2
+)
+}
+
+</pre>
+
+
+
+</div>
+
+
+
+}
+
+
+
+
+
+
+{/* RENT BOX */}
+
+
+
+<div
+
+className="
+mt-8
+border
+rounded-2xl
+p-6
+shadow-sm
+"
+
+>
+
+
+
+<h3
+
+className="
+text-2xl
+font-bold
+"
+
+>
+
+Rent This Gear
+
+</h3>
+
+
+
+<p
+
+className="
+mt-3
+text-gray-500
+"
+
+>
+
+Select rental dates and continue to checkout.
+
+</p>
+
+
+
+<div
+
+className="
+grid
+md:grid-cols-2
+gap-4
+mt-5
+"
+
+>
+
+
+<input
+
+type="date"
+
+className="
+border
+rounded-xl
+p-3
+"
+
+/>
+
+
+<input
+
+type="date"
+
+className="
+border
+rounded-xl
+p-3
+"
+
+/>
+
+
+
+</div>
+
 
 
 
 <button
 
 className="
-mt-8
+mt-6
+w-full
 bg-black
 text-white
-px-10
 py-4
 rounded-xl
+font-semibold
+hover:bg-gray-800
 "
 
 >
@@ -197,6 +607,19 @@ Rent Now
 
 
 </div>
+
+
+
+
+</div>
+
+
+
+
+</div>
+
+
+</main>
 
 
 )
