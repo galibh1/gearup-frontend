@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
 
+import PayButton from "./PayButton";
+
 
 const API_URL =
   process.env.BACKEND_API_URL ||
@@ -19,11 +21,15 @@ async function getRental(id:string){
     `${API_URL}/api/rentals/${id}`,
 
     {
+
       headers:{
-        Cookie: cookieStore.toString()
+
+        Cookie: cookieStore.toString(),
+
       },
 
-      cache:"no-store"
+      cache:"no-store",
+
     }
 
   );
@@ -36,7 +42,8 @@ async function getRental(id:string){
   }
 
 
-  const result = await response.json();
+  const result =
+    await response.json();
 
 
   return result.data ?? result;
@@ -47,14 +54,18 @@ async function getRental(id:string){
 
 
 
+
+
 export default async function RentalDetailsPage({
 
-params
+params,
 
 }:{
 
-params:Promise<{
+params: Promise<{
+
 id:string
+
 }>
 
 }){
@@ -73,6 +84,7 @@ if(!rental){
   notFound();
 
 }
+
 
 
 
@@ -105,8 +117,6 @@ p-10
 >
 
 
-
-
 <Link
 
 href="/dashboard/rentals"
@@ -121,9 +131,6 @@ font-semibold
 ← Back to Rentals
 
 </Link>
-
-
-
 
 
 
@@ -148,11 +155,6 @@ Rental Details
 
 
 
-
-
-{/* BASIC INFORMATION */}
-
-
 <div
 
 className="
@@ -163,7 +165,6 @@ text-gray-700
 "
 
 >
-
 
 
 <p>
@@ -180,8 +181,6 @@ Rental ID:
 
 
 
-
-
 <p>
 
 <strong>
@@ -189,7 +188,6 @@ Status:
 </strong>
 
 {" "}
-
 
 
 <span
@@ -210,9 +208,7 @@ font-semibold
 
 </span>
 
-
 </p>
-
 
 
 
@@ -226,18 +222,12 @@ Start Date:
 {" "}
 
 {
-
 new Date(
 rental.startDate
-)
-.toLocaleDateString()
-
+).toLocaleDateString()
 }
 
-
 </p>
-
-
 
 
 
@@ -250,17 +240,12 @@ End Date:
 {" "}
 
 {
-
 new Date(
 rental.endDate
-)
-.toLocaleDateString()
-
+).toLocaleDateString()
 }
 
-
 </p>
-
 
 
 </div>
@@ -270,11 +255,6 @@ rental.endDate
 
 
 
-
-
-
-
-{/* PROVIDER */}
 
 
 <div
@@ -319,7 +299,6 @@ Name:
 
 
 
-
 <p>
 
 <strong>
@@ -333,8 +312,6 @@ Email:
 </p>
 
 
-
-
 </div>
 
 
@@ -343,9 +320,6 @@ Email:
 
 
 
-
-
-{/* RENTAL ITEMS */}
 
 
 <div
@@ -369,7 +343,6 @@ font-bold
 Rental Items
 
 </h2>
-
 
 
 
@@ -410,6 +383,8 @@ items-center
 
 src={
 item.gearItem?.imageUrls?.[0]
+||
+"/placeholder-gear.jpg"
 }
 
 alt="gear"
@@ -446,65 +421,27 @@ font-bold
 
 
 <p>
-
-Brand:
-
-{" "}
-
-{item.gearItem?.brand}
-
+Brand: {item.gearItem?.brand || "N/A"}
 </p>
 
 
-
-
 <p>
-
-Category:
-
-{" "}
-
-{item.gearItem?.category?.name}
-
+Category: {item.gearItem?.category?.name || "N/A"}
 </p>
 
 
-
-
 <p>
-
-Quantity:
-
-{" "}
-
-{item.quantity}
-
+Quantity: {item.quantity}
 </p>
 
 
-
-
 <p>
-
-Rental Days:
-
-{" "}
-
-{item.rentalDays}
-
+Rental Days: {item.rentalDays}
 </p>
 
 
-
-
 <p>
-
-Price Per Day:
-
-{" "}
-
-${item.pricePerDay}
-
+Price Per Day: ${item.pricePerDay}
 </p>
 
 
@@ -512,11 +449,7 @@ ${item.pricePerDay}
 </div>
 
 
-
-
-
 </div>
-
 
 
 ))
@@ -524,7 +457,6 @@ ${item.pricePerDay}
 }
 
 
-
 </div>
 
 
@@ -538,7 +470,7 @@ ${item.pricePerDay}
 
 
 
-{/* PAYMENT SUMMARY */}
+{/* PAYMENT */}
 
 
 
@@ -554,7 +486,6 @@ p-8
 >
 
 
-
 <h2
 
 className="
@@ -567,7 +498,6 @@ font-bold
 Payment Summary
 
 </h2>
-
 
 
 
@@ -595,19 +525,11 @@ justify-between
 >
 
 <span>
-
 Subtotal
-
 </span>
 
 
-<span
-
-className="
-font-semibold
-"
-
->
+<span className="font-semibold">
 
 ${rental.subtotal}
 
@@ -615,9 +537,6 @@ ${rental.subtotal}
 
 
 </div>
-
-
-
 
 
 
@@ -632,19 +551,11 @@ justify-between
 >
 
 <span>
-
 Security Deposit
-
 </span>
 
 
-<span
-
-className="
-font-semibold
-"
-
->
+<span className="font-semibold">
 
 ${rental.depositTotal}
 
@@ -652,8 +563,6 @@ ${rental.depositTotal}
 
 
 </div>
-
-
 
 
 
@@ -675,9 +584,7 @@ font-bold
 
 
 <span>
-
 Total
-
 </span>
 
 
@@ -688,6 +595,9 @@ ${rental.totalAmount}
 </span>
 
 
+</div>
+
+
 
 </div>
 
@@ -695,40 +605,55 @@ ${rental.totalAmount}
 
 
 
+
+
+{
+
+rental.status === "CONFIRMED" ? (
+
+
+<div className="mt-8">
+
+<PayButton
+
+rentalId={rental.id}
+
+/>
+
 </div>
 
 
+) : (
 
 
-
-
-
-<button
+<div
 
 className="
 mt-8
-w-full
-bg-black
-text-white
-py-4
 rounded-xl
+bg-yellow-100
+border
+border-yellow-300
+p-5
+text-yellow-800
 font-semibold
-hover:bg-gray-800
-transition
 "
 
 >
 
-Pay Now
-
-</button>
-
-
+Payment will be available after the provider confirms this rental.
 
 </div>
 
 
+)
 
+}
+
+
+
+
+</div>
 
 
 

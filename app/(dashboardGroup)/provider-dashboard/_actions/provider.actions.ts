@@ -2,9 +2,14 @@
 
 
 import {
+
     getProviderOrders,
+
     updateRentalStatus
-} from "@/services/provider.service";
+
+}
+from "@/services/provider.service";
+
 
 
 
@@ -25,12 +30,14 @@ export async function fetchProviderOrders(){
 
             success:true,
 
-            data:result.data,
+            data:
+            result.data || []
 
         };
 
 
-    }catch(error:any){
+    }
+    catch(error:any){
 
 
         return {
@@ -46,8 +53,8 @@ export async function fetchProviderOrders(){
 
     }
 
-}
 
+}
 
 
 
@@ -70,7 +77,9 @@ export async function confirmRental(
             id,
 
             {
+
                 status:"CONFIRMED"
+
             }
 
         );
@@ -85,7 +94,8 @@ export async function confirmRental(
 
 
 
-    }catch(error:any){
+    }
+    catch(error:any){
 
 
         return {

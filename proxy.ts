@@ -1,21 +1,44 @@
-import { NextRequest, NextResponse } from "next/server";
+import {
+    NextRequest,
+    NextResponse
+} from "next/server";
+
 import jwt from "jsonwebtoken";
 
 
+
 const publicRoutes = [
+
     "/",
     "/login",
     "/register",
+
 ];
 
 
 
+const protectedRoutes = [
+
+    "/dashboard",
+    "/provider-dashboard",
+    "/admin-dashboard",
+
+];
+
+
+
+
+
 export function proxy(
-    request: NextRequest
-) {
+
+    request:NextRequest
+
+){
+
 
     const pathname =
         request.nextUrl.pathname;
+
 
 
     const token =
@@ -25,11 +48,10 @@ export function proxy(
 
 
 
-    // Allow public routes
 
-    if (
+    if(
         publicRoutes.includes(pathname)
-    ) {
+    ){
 
         return NextResponse.next();
 
@@ -37,69 +59,57 @@ export function proxy(
 
 
 
-    const protectedRoutes = [
-        "/dashboard",
-        "/provider-dashboard",
-        "/admin-dashboard",
-    ];
 
 
 
-    const isProtectedRoute =
+    const isProtected =
         protectedRoutes.some(
-            (route) =>
+            route =>
                 pathname.startsWith(route)
         );
 
 
 
-    // If user is not logged in
 
-    if (
-        isProtectedRoute &&
+
+
+    if(
+        isProtected &&
         !token
-    ) {
+    ){
 
         return NextResponse.redirect(
+
             new URL(
                 "/login",
                 request.url
             )
+
         );
 
     }
 
 
 
-    // Verify JWT and check role
+
 
     if(token){
 
-        try {
+
+        try{
 
 
             const decoded =
-                jwt.verify(
-                    token,
-                    process.env.JWT_ACCESS_SECRET!
-                ) as {
-                    id:string;
-                    name:string;
-                    email:string;
-                    role:
-                    | "CUSTOMER"
-                    | "PROVIDER"
-                    | "ADMIN";
+                jwt.decode(token) as {
+                    role?:string
                 };
 
 
 
             const role =
-                decoded.role;
+                decoded?.role;
 
 
-
-            // CUSTOMER
 
             if(
                 pathname.startsWith(
@@ -110,17 +120,19 @@ export function proxy(
             ){
 
                 return NextResponse.redirect(
+
                     new URL(
-                        "/",
+                        "/unauthorized",
                         request.url
                     )
+
                 );
 
             }
 
 
 
-            // PROVIDER
+
 
             if(
                 pathname.startsWith(
@@ -131,17 +143,19 @@ export function proxy(
             ){
 
                 return NextResponse.redirect(
+
                     new URL(
-                        "/",
+                        "/unauthorized",
                         request.url
                     )
+
                 );
 
             }
 
 
 
-            // ADMIN
+
 
             if(
                 pathname.startsWith(
@@ -152,37 +166,45 @@ export function proxy(
             ){
 
                 return NextResponse.redirect(
+
                     new URL(
-                        "/",
+                        "/unauthorized",
                         request.url
                     )
+
                 );
 
             }
 
 
 
-        } catch(error){
+
+        }
+
+        catch{
 
 
             return NextResponse.redirect(
+
                 new URL(
                     "/login",
                     request.url
                 )
+
             );
 
 
         }
 
+
     }
+
 
 
 
     return NextResponse.next();
 
 }
-
 
 
 

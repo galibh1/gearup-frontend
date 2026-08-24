@@ -1,335 +1,347 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+
+import {
+    useActionState,
+    useEffect
+} from "react";
+
+
 import { toast } from "sonner";
-
-import { registerAction } from "../_actions/authActions";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+    registerAction
+} from "../_actions/authActions";
+
+
+import {
+    Button
+} from "@/components/ui/button";
+
+
+import {
+    Input
+} from "@/components/ui/input";
+
+
+import {
+    Label
+} from "@/components/ui/label";
+
+
 
 
 
 const RegisterForm = () => {
 
 
-    const [state, action, pending] = useActionState(
-        registerAction,
-        null
-    );
 
+const [
+    state,
+    action,
+    pending
+] =
+useActionState(
 
+    registerAction,
 
-    useEffect(() => {
+    null
 
-        if (!state) return;
+);
 
 
-        if (!state.success) {
 
-            toast.error(
-                state.message || "Registration failed"
-            );
 
-        }
 
 
-    }, [state]);
 
 
+useEffect(()=>{
 
 
+    if(!state)
+        return;
 
-    return (
 
-        <form
-            action={action}
-            className="space-y-5"
-        >
 
+    if(state.success){
 
 
+        toast.success(
+            state.message
+        );
 
 
-            {/* Name */}
-            <div className="space-y-2">
+    }
+    else{
 
 
-                <Label
-                    htmlFor="name"
-                    className="
-                    text-sm
-                    font-semibold
-                    text-gray-800
-                    "
-                >
-                    Full Name
-                </Label>
+        toast.error(
+            state.message
+        );
 
 
+    }
 
-                <Input
 
-                    id="name"
 
-                    name="name"
+},[state]);
 
-                    placeholder="Enter your full name"
 
-                    required
 
 
-                    className="
-                    h-14
-                    rounded-xl
-                    border-gray-200
-                    px-5
-                    shadow-sm
-                    focus:border-emerald-500
-                    focus:ring-4
-                    focus:ring-emerald-100
-                    "
 
-                />
 
 
-            </div>
 
 
+return (
 
+<form
 
+action={action}
 
+className="space-y-5"
 
+>
 
 
-            {/* Email */}
-            <div className="space-y-2">
 
 
-                <Label
-                    htmlFor="email"
-                    className="
-                    text-sm
-                    font-semibold
-                    text-gray-800
-                    "
-                >
-                    Email
-                </Label>
 
 
+<div className="space-y-2">
 
-                <Input
+<Label>
+Full Name
+</Label>
 
-                    id="email"
 
-                    name="email"
+<Input
 
-                    type="email"
+name="name"
 
-                    placeholder="Enter your email"
+placeholder="Enter your full name"
 
-                    required
+required
 
+/>
 
-                    className="
-                    h-14
-                    rounded-xl
-                    border-gray-200
-                    px-5
-                    shadow-sm
-                    focus:border-emerald-500
-                    focus:ring-4
-                    focus:ring-emerald-100
-                    "
+</div>
 
-                />
 
 
-            </div>
 
 
 
 
 
+<div className="space-y-2">
 
 
+<Label>
+Email
+</Label>
 
-            {/* Password */}
-            <div className="space-y-2">
 
+<Input
 
-                <Label
-                    htmlFor="password"
-                    className="
-                    text-sm
-                    font-semibold
-                    text-gray-800
-                    "
-                >
-                    Password
-                </Label>
+name="email"
 
+type="email"
 
+placeholder="Enter your email"
 
+required
 
-                <Input
+/>
 
-                    id="password"
 
-                    name="password"
+</div>
 
-                    type="password"
 
-                    placeholder="Enter your password"
 
-                    required
 
 
-                    className="
-                    h-14
-                    rounded-xl
-                    border-gray-200
-                    px-5
-                    shadow-sm
-                    focus:border-emerald-500
-                    focus:ring-4
-                    focus:ring-emerald-100
-                    "
 
-                />
 
 
-            </div>
+<div className="space-y-2">
 
 
+<Label>
+Password
+</Label>
 
 
+<Input
 
+name="password"
 
+type="password"
 
+placeholder="Enter your password"
 
+required
 
-            {/* Role */}
-            <div className="space-y-2">
+/>
 
 
-                <Label
-                    className="
-                    text-sm
-                    font-semibold
-                    text-gray-800
-                    "
-                >
-                    Register As
-                </Label>
+<p className="text-xs text-gray-500">
 
+Minimum 8 characters, uppercase, lowercase, number required.
 
+</p>
 
-                <Select
-                    name="role"
-                    required
-                >
 
-                    <SelectTrigger
-                        className="
-                        h-14
-                        w-full
-                        rounded-xl
-                        border-gray-200
-                        shadow-sm
-                        "
-                    >
+</div>
 
-                        <SelectValue
-                            placeholder="Select your role"
-                        />
 
 
-                    </SelectTrigger>
 
 
 
-                    <SelectContent>
 
 
-                        <SelectItem value="CUSTOMER">
 
-                            Customer
+<div className="space-y-2">
 
-                        </SelectItem>
 
+<Label>
+Register As
+</Label>
 
 
-                        <SelectItem value="PROVIDER">
 
-                            Provider
+<select
 
-                        </SelectItem>
 
+name="role"
 
-                    </SelectContent>
 
+required
 
-                </Select>
 
+defaultValue=""
 
 
-            </div>
+className="
+h-14
+w-full
+rounded-xl
+border
+px-4
+bg-white
+"
 
 
+>
 
 
+<option
 
+value=""
 
+disabled
 
-            <Button
+>
 
-                type="submit"
+Select your role
 
-                disabled={pending}
+</option>
 
 
-                className="
-                h-12
-                w-full
-                rounded-xl
-                bg-emerald-600
-                text-white
-                font-semibold
-                shadow-md
-                hover:bg-emerald-700
-                active:scale-[0.98]
-                "
 
-            >
+<option
 
-                {
-                    pending
-                    ? "Creating Account..."
-                    : "Create Account"
-                }
+value="CUSTOMER"
 
+>
 
-            </Button>
+Customer
 
+</option>
 
 
 
+<option
 
-        </form>
+value="PROVIDER"
 
-    );
+>
+
+Provider
+
+</option>
+
+
+
+
+</select>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<Button
+
+
+type="submit"
+
+
+disabled={pending}
+
+
+
+className="
+h-12
+w-full
+rounded-xl
+bg-emerald-600
+text-white
+font-semibold
+"
+
+
+
+>
+
+
+{
+
+pending
+
+?
+
+"Creating Account..."
+
+:
+
+"Create Account"
+
+}
+
+
+
+</Button>
+
+
+
+
+
+</form>
+
+
+);
 
 
 };

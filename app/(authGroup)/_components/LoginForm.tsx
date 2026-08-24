@@ -1,7 +1,10 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import {
+    useActionState,
+    useEffect
+} from "react";
+
 import { toast } from "sonner";
 
 import { loginAction } from "../_actions/authActions";
@@ -11,35 +14,52 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 
+
 const LoginForm = () => {
 
-    const searchParams = useSearchParams();
 
-    const redirectTo = searchParams.get("redirectTo") ?? "";
+    const [
+        state,
+        action,
+        pending
+    ] = useActionState(
 
+        loginAction,
 
-    const [state, action, pending] = useActionState(
-        loginAction.bind(null, redirectTo),
         null
+
     );
+
+
 
 
 
     useEffect(() => {
 
-        if (!state) return;
+
+        if(!state) return;
 
 
-        if (!state.success) {
+
+        if(!state.success){
+
 
             toast.error(
-                state.message || "Login failed"
+
+                state.message ||
+                "Login failed"
+
             );
+
 
         }
 
 
-    }, [state]);
+    },[state]);
+
+
+
+
 
 
 
@@ -47,27 +67,39 @@ const LoginForm = () => {
     return (
 
         <form
+
             action={action}
+
             className="space-y-6"
+
         >
 
 
 
             <div className="space-y-2">
 
+
                 <Label
+
                     htmlFor="email"
+
                     className="
                     text-sm
                     font-semibold
                     text-gray-800
                     "
+
                 >
+
                     Email
+
                 </Label>
 
 
+
+
                 <Input
+
 
                     id="email"
 
@@ -94,10 +126,15 @@ const LoginForm = () => {
                     focus:ring-emerald-100
                     "
 
+
                 />
 
 
             </div>
+
+
+
+
 
 
 
@@ -108,6 +145,7 @@ const LoginForm = () => {
 
                 <Label
 
+
                     htmlFor="password"
 
                     className="
@@ -116,11 +154,13 @@ const LoginForm = () => {
                     text-gray-800
                     "
 
+
                 >
 
                     Password
 
                 </Label>
+
 
 
 
@@ -155,6 +195,7 @@ const LoginForm = () => {
                     "
 
 
+
                 />
 
 
@@ -166,9 +207,12 @@ const LoginForm = () => {
 
 
 
+
             <Button
 
+
                 type="submit"
+
 
                 disabled={pending}
 
@@ -186,12 +230,21 @@ const LoginForm = () => {
                 active:scale-[0.98]
                 "
 
+
             >
 
-                {pending ? "Signing In..." : "Sign in"}
+
+                {
+                    pending
+                    ?
+                    "Signing In..."
+                    :
+                    "Sign in"
+                }
 
 
             </Button>
+
 
 
 
@@ -200,7 +253,9 @@ const LoginForm = () => {
 
     );
 
+
 };
+
 
 
 export default LoginForm;

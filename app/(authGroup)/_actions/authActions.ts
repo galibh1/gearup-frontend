@@ -1,217 +1,398 @@
 "use server";
 
-import { cookies } from "next/headers";
+
 import { redirect } from "next/navigation";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import { cookies } from "next/headers";
 
 
-type LoginState = {
-    success: boolean;
-    statusCode: number;
-    message: string;
-    data?: {
-        accessToken: string;
-        user: {
-            id: string;
-            name: string;
-            email: string;
-            role: "CUSTOMER" | "PROVIDER" | "ADMIN";
-            activeStatus?: string;
+
+const API_URL =
+    process.env.BACKEND_API_URL ||
+    "http://localhost:8000";
+
+
+
+
+
+export async function registerAction(
+
+    previousState:any,
+
+    formData:FormData
+
+){
+
+
+    try{
+
+
+        const body={
+
+
+            name:String(
+                formData.get("name") || ""
+            ),
+
+
+            email:String(
+                formData.get("email") || ""
+            ),
+
+
+            password:String(
+                formData.get("password") || ""
+            ),
+
+
+            role:String(
+                formData.get("role") || ""
+            ),
+
+
         };
-    };
-};
 
 
 
-export const loginAction = async (
-    redirectTo: string,
-    prevState: LoginState | null,
-    formData: FormData
-) => {
 
-    const email = formData.get("email");
-    const password = formData.get("password");
 
+        const response =
+        await fetch(
 
-    const payload = {
-        email,
-        password,
-    };
+            `${API_URL}/api/auth/register`,
 
+            {
 
-    const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
-        {
-            method: "POST",
+                method:"POST",
 
-            headers:{
-                "Content-Type":"application/json",
-            },
+                headers:{
 
-            body: JSON.stringify(payload),
+                    "Content-Type":
+                    "application/json"
 
-            cache:"no-store",
-        }
-    );
+                },
 
 
-    const result = await res.json();
+                body:
+                JSON.stringify(body)
 
+            }
 
+        );
 
-    if(!result.success){
 
-        return result;
 
-    }
 
 
+        const result =
+        await response.json();
 
-    const cookieStore = await cookies();
 
 
 
-    cookieStore.set(
-        "accessToken",
-        result.data.accessToken,
-        {
-            httpOnly:true,
 
-            maxAge:
-                60 * 60 * 24 * 7,
+        if(!response.ok){
 
-            sameSite:"lax",
 
-            secure:
-                process.env.NODE_ENV === "production",
-        }
-    );
+            return {
 
 
+                success:false,
 
-    const decodedToken =
-        jwt.decode(
-            result.data.accessToken
-        ) as JwtPayload;
+                message:
+                result.message ||
+                "Registration failed"
 
+            };
 
-
-    if (
-        redirectTo &&
-        typeof redirectTo === "string" &&
-        redirectTo.startsWith("/") &&
-        !redirectTo.startsWith("//")
-    ) {
-
-        redirect(redirectTo);
-
-    }
-
-
-
-    switch(decodedToken.role){
-
-
-        case "CUSTOMER":
-
-            redirect("/dashboard");
-
-
-        case "PROVIDER":
-
-            redirect("/provider-dashboard");
-
-
-        case "ADMIN":
-
-            redirect("/admin-dashboard");
-
-
-        default:
-
-            redirect("/");
-
-    }
-
-};
-
-
-
-
-
-export const registerAction = async (
-    prevState: unknown,
-    formData: FormData
-) => {
-
-
-    const name =
-        formData.get("name");
-
-
-    const email =
-        formData.get("email");
-
-
-    const password =
-        formData.get("password");
-
-
-    const role =
-        formData.get("role");
-
-
-
-    const payload = {
-
-        name,
-
-        email,
-
-        password,
-
-        role,
-
-    };
-
-
-
-
-    const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/register`,
-        {
-
-            method:"POST",
-
-            headers:{
-                "Content-Type":"application/json",
-            },
-
-
-            body:JSON.stringify(payload),
-
-
-            cache:"no-store",
 
         }
-    );
-
-
-
-    const result =
-        await res.json();
 
 
 
 
-    if(!result.success){
 
-        return result;
+
+        redirect("/login");
+
+
+
+
+
+    }
+
+    catch(error:any){
+
+
+        return {
+
+
+            success:false,
+
+            message:
+            error.message ||
+            "Registration failed"
+
+
+        };
+
+
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+export async function loginAction(
+
+    previousState:any,
+
+    formData:FormData
+
+){
+
+
+
+    try{
+
+
+
+        const body={
+
+
+            email:String(
+                formData.get("email") || ""
+            ),
+
+
+
+            password:String(
+                formData.get("password") || ""
+            ),
+
+
+        };
+
+
+
+
+
+
+        const response =
+        await fetch(
+
+            `${API_URL}/api/auth/login`,
+
+            {
+
+
+                method:"POST",
+
+
+                headers:{
+
+
+                    "Content-Type":
+                    "application/json"
+
+
+                },
+
+
+                body:
+                JSON.stringify(body)
+
+
+            }
+
+        );
+
+
+
+
+
+
+
+
+        const result =
+        await response.json();
+
+
+
+
+
+
+
+
+        if(!response.ok){
+
+
+
+            return {
+
+
+                success:false,
+
+
+                message:
+                result.message ||
+                "Login failed"
+
+
+
+            };
+
+
+        }
+
+
+
+
+
+
+
+
+        const cookieStore =
+        await cookies();
+
+
+
+
+
+
+
+
+        cookieStore.set(
+
+            "accessToken",
+
+            result.data.accessToken,
+
+
+            {
+
+
+                httpOnly:true,
+
+
+                secure:
+                process.env.NODE_ENV==="production",
+
+
+                sameSite:"lax",
+
+
+                path:"/",
+
+
+
+            }
+
+
+        );
+
+
+
+
+
+
+
+
+
+        const role =
+        result.data.user.role;
+
+
+
+
+
+
+        // IMPORTANT:
+        // redirect throws NEXT_REDIRECT internally
+        // so return after it is impossible
+
+
+        if(role==="ADMIN"){
+
+
+            redirect(
+                "/admin-dashboard"
+            );
+
+
+        }
+
+
+
+        if(role==="PROVIDER"){
+
+
+            redirect(
+                "/provider-dashboard"
+            );
+
+
+        }
+
+
+
+        redirect(
+            "/dashboard"
+        );
+
+
+
+
+
 
     }
 
 
 
-    redirect("/login");
+    catch(error:any){
 
-};
+
+
+        // Ignore Next redirect error
+
+
+        if(
+            error?.digest?.startsWith(
+                "NEXT_REDIRECT"
+            )
+        ){
+
+            throw error;
+
+        }
+
+
+
+
+
+
+        return {
+
+
+            success:false,
+
+
+            message:
+            error.message ||
+            "Login failed"
+
+
+        };
+
+
+
+    }
+
+
+}
