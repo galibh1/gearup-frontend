@@ -1,7 +1,8 @@
 import Link from "next/link";
 
 
-export default function UnauthorizedPage(){
+
+export default function PaymentCancelPage(){
 
 
     return (
@@ -10,10 +11,10 @@ export default function UnauthorizedPage(){
 
         className="
         min-h-screen
+        bg-gray-50
         flex
         items-center
         justify-center
-        bg-gray-50
         px-5
         "
 
@@ -28,6 +29,7 @@ export default function UnauthorizedPage(){
             shadow-xl
             p-10
             text-center
+            max-w-lg
             "
 
             >
@@ -43,7 +45,7 @@ export default function UnauthorizedPage(){
 
                 >
 
-                    Unauthorized
+                    Payment Cancelled
 
                 </h1>
 
@@ -53,23 +55,22 @@ export default function UnauthorizedPage(){
                 <p
 
                 className="
-                mt-4
+                mt-5
                 text-gray-600
                 "
 
                 >
 
-                    You do not have permission to access this page.
+                    Your Stripe payment was cancelled.
 
                 </p>
 
 
 
 
-
                 <Link
 
-                href="/login"
+                href="/dashboard/rentals"
 
                 className="
                 inline-block
@@ -83,7 +84,7 @@ export default function UnauthorizedPage(){
 
                 >
 
-                    Go To Login
+                    Back To Rentals
 
                 </Link>
 
@@ -95,5 +96,6 @@ export default function UnauthorizedPage(){
         </main>
 
     );
+
 
 }

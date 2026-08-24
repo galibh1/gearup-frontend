@@ -2,7 +2,22 @@
 
 
 import { useState } from "react";
-import { createPayment } from "@/lib/api";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+
+
+import {
+    createPaymentAction
+} from "./_actions/payment.actions";
+
+
+
+interface Props {
+
+    rentalId:string;
+
+}
+
 
 
 
@@ -10,15 +25,14 @@ export default function PayButton({
 
     rentalId
 
-}:{
+}:Props){
 
-    rentalId:string
-
-}){
 
 
     const [loading,setLoading] =
         useState(false);
+
+
 
 
 
@@ -32,81 +46,56 @@ export default function PayButton({
 
 
 
-            console.log(
-                "Sending rental id:",
-                rentalId
-            );
-
-
-
             const result =
-                await createPayment(
+                await createPaymentAction(
                     rentalId
                 );
 
 
 
             console.log(
-                "FULL PAYMENT RESPONSE:",
+                "STRIPE RESULT:",
                 result
             );
 
 
 
-            if(
-                result?.checkoutSession?.url
-            ){
+            const url =
+                result
+                ?.data
+                ?.checkoutSession
+                ?.url;
 
 
-                window.location.href =
-                    result.checkoutSession.url;
 
+            if(!url){
 
-            }
-
-            else{
-
-
-                alert(
-                    "Stripe URL missing. Check console."
+                throw new Error(
+                    "Stripe checkout URL missing"
                 );
 
-
             }
+
+
+
+            window.location.href =
+                url;
 
 
 
         }
-
         catch(error:any){
 
 
-            console.error(
-                "FULL ERROR:",
-                error
-            );
+            toast.error(
 
-
-
-            console.error(
-                "SERVER RESPONSE:",
-                error?.response?.data
-            );
-
-
-
-            alert(
-
-                error?.response?.data?.message ||
-
+                error.message ||
                 "Payment failed"
 
             );
 
 
         }
-
-
         finally{
 
 
@@ -121,39 +110,66 @@ export default function PayButton({
 
 
 
+
+
     return (
 
         <button
 
-        onClick={handlePayment}
+            onClick={handlePayment}
 
-        disabled={loading}
+            disabled={loading}
 
-        className="
-        mt-8
-        w-full
-        bg-black
-        text-white
-        py-4
-        rounded-xl
-        font-semibold
-        disabled:bg-gray-400
-        "
+
+            className="
+            w-full
+            rounded-lg
+            bg-green-600
+            px-5
+            py-3
+            text-white
+            font-semibold
+            hover:bg-green-700
+            disabled:opacity-50
+            flex
+            justify-center
+            items-center
+            gap-2
+            "
 
         >
 
-        {
-            loading
-            ?
-            "Redirecting..."
-            :
-            "Pay Now"
-        }
+
+            {
+                loading &&
+
+                <Loader2
+
+                    className="
+                    h-5
+                    w-5
+                    animate-spin
+                    "
+
+                />
+
+            }
+
+
+
+            {
+                loading
+                ?
+                "Redirecting..."
+                :
+                "Pay Now"
+            }
+
 
 
         </button>
 
-
     );
+
 
 }

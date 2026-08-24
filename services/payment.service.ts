@@ -1,6 +1,8 @@
 "use server";
 
+
 import { cookies } from "next/headers";
+
 
 
 const API_URL =
@@ -9,95 +11,14 @@ const API_URL =
 
 
 
-export async function getProviderOrders(){
 
 
-    const cookieStore =
-        await cookies();
+export async function createPaymentSession(
 
-
-    const token =
-        cookieStore.get(
-            "accessToken"
-        )?.value;
-
-
-
-    if(!token){
-
-        throw new Error(
-            "Authentication required"
-        );
-
+    data:{
+        rentalOrderId:string;
     }
 
-
-
-
-    const response =
-        await fetch(
-
-            `${API_URL}/api/provider/orders`,
-
-            {
-
-                method:"GET",
-
-                headers:{
-
-
-                    Authorization:
-                    `Bearer ${token}`
-
-                },
-
-
-                cache:"no-store"
-
-            }
-
-        );
-
-
-
-    const result =
-        await response.json();
-
-
-
-    console.log(
-        "PROVIDER ORDERS:",
-        result
-    );
-
-
-
-    if(!response.ok){
-
-        throw new Error(
-            result.message ||
-            "Failed to load provider orders"
-        );
-
-    }
-
-
-
-    return result;
-
-}
-
-
-
-
-
-
-export async function updateRentalStatus(
-    rentalId:string,
-    status:
-    "CONFIRMED" |
-    "PICKED_UP" |
-    "RETURNED"
 ){
 
 
@@ -107,6 +28,8 @@ export async function updateRentalStatus(
 
 
 
+
+
     const token =
         cookieStore.get(
             "accessToken"
@@ -114,13 +37,19 @@ export async function updateRentalStatus(
 
 
 
+
+
     if(!token){
+
 
         throw new Error(
             "Authentication required"
         );
 
+
     }
+
+
 
 
 
@@ -129,12 +58,13 @@ export async function updateRentalStatus(
     const response =
         await fetch(
 
-            `${API_URL}/api/provider/orders/${rentalId}`,
+            `${API_URL}/api/payments/create`,
 
             {
 
 
-                method:"PATCH",
+                method:"POST",
+
 
 
                 headers:{
@@ -144,22 +74,26 @@ export async function updateRentalStatus(
                     "application/json",
 
 
+
                     Authorization:
                     `Bearer ${token}`
+
 
                 },
 
 
+
                 body:
-                JSON.stringify({
+                JSON.stringify(data)
 
-                    status
 
-                })
 
             }
 
+
         );
+
+
 
 
 
@@ -171,8 +105,11 @@ export async function updateRentalStatus(
 
 
 
+
+
+
     console.log(
-        "UPDATE STATUS:",
+        "PAYMENT RESPONSE:",
         result
     );
 
@@ -180,19 +117,171 @@ export async function updateRentalStatus(
 
 
 
+
+
     if(!response.ok){
+
 
         throw new Error(
 
-            result.message ||
-            "Status update failed"
+            result?.message ||
+
+            "Payment creation failed"
+
 
         );
+
 
     }
 
 
 
+
+
+
+
     return result;
+
+
+
+}
+
+
+
+
+
+
+
+
+export async function confirmPayment(
+
+    data:{
+        stripeSessionId:string;
+    }
+
+){
+
+
+
+    const cookieStore =
+        await cookies();
+
+
+
+
+
+    const token =
+        cookieStore.get(
+            "accessToken"
+        )?.value;
+
+
+
+
+
+    if(!token){
+
+
+        throw new Error(
+            "Authentication required"
+        );
+
+
+    }
+
+
+
+
+
+
+
+    const response =
+        await fetch(
+
+            `${API_URL}/api/payments/confirm`,
+
+            {
+
+
+                method:"POST",
+
+
+
+                headers:{
+
+
+                    "Content-Type":
+                    "application/json",
+
+
+
+                    Authorization:
+                    `Bearer ${token}`
+
+
+                },
+
+
+
+                body:
+                JSON.stringify(data)
+
+
+
+            }
+
+
+        );
+
+
+
+
+
+
+
+    const result =
+        await response.json();
+
+
+
+
+
+
+
+    console.log(
+        "CONFIRM PAYMENT RESPONSE:",
+        result
+    );
+
+
+
+
+
+
+
+    if(!response.ok){
+
+
+        throw new Error(
+
+            result?.message ||
+
+            "Payment confirmation failed"
+
+
+        );
+
+
+    }
+
+
+
+
+
+
+
+    return result;
+
+
 
 }

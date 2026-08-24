@@ -1,5 +1,16 @@
-import ProviderRentalCard from "./ProviderRentalCard";
-import { getProviderOrders } from "@/services/provider.service";
+import {
+    fetchProviderOrders
+}
+from "./_actions/provider.actions";
+
+
+import LogoutButton
+from "@/components/shared/LogoutButton";
+
+
+import ProviderRentalCard
+from "./_components/ProviderRentalCard";
+
 
 
 
@@ -9,7 +20,7 @@ export default async function ProviderDashboard(){
 
 
     const result =
-    await getProviderOrders();
+    await fetchProviderOrders();
 
 
 
@@ -19,54 +30,65 @@ export default async function ProviderDashboard(){
 
 
 
+
     return (
 
-
         <main
-            className="
-            min-h-screen
-            bg-gray-50
-            p-10
-            "
+
+        className="
+        min-h-screen
+        bg-gray-50
+        p-10
+        "
+
         >
 
 
 
             <div
-                className="
-                max-w-6xl
-                mx-auto
-                "
+
+            className="
+            max-w-6xl
+            mx-auto
+            "
+
             >
 
 
 
-                <h1
+                <div
+
+                className="
+                flex
+                justify-between
+                items-center
+                mb-8
+                "
+
+                >
+
+
+
+                    <h1
+
                     className="
                     text-4xl
                     font-bold
                     "
-                >
+
+                    >
 
                     Provider Dashboard
 
-                </h1>
+                    </h1>
 
 
 
 
+                    <LogoutButton />
 
-                <p
-                    className="
-                    mt-3
-                    text-gray-600
-                    "
-                >
 
-                    Manage your rental orders
-
-                </p>
-
+                </div>
 
 
 
@@ -75,61 +97,66 @@ export default async function ProviderDashboard(){
 
 
                 <div
-                    className="
-                    mt-10
-                    space-y-6
-                    "
+
+                className="
+                grid
+                gap-6
+                "
+
                 >
 
 
 
-                    {
-                        rentals.length === 0 ?
+                {
+
+                    rentals.length===0
+
+                    ?
+
+                    <div
+
+                    className="
+                    bg-white
+                    rounded-xl
+                    p-6
+                    shadow
+                    "
+
+                    >
+
+                    <p>
+                    No rental requests
+                    </p>
+
+                    </div>
 
 
-                        (
-
-                            <div
-                                className="
-                                bg-white
-                                p-8
-                                rounded-xl
-                                "
-                            >
-
-                                No rental orders found.
-
-                            </div>
-
-                        )
+                    :
 
 
-                        :
+                    rentals.map(
+                    (rental:any)=>(
 
 
-                        rentals.map(
-                            (rental:any)=>(
+                        <ProviderRentalCard
+
+                        key={
+                            rental.id
+                        }
+
+                        rental={
+                            rental
+                        }
+
+                        />
 
 
-                                <ProviderRentalCard
+                    )
 
-                                    key={
-                                        rental.id
-                                    }
+                    )
 
 
-                                    rental={
-                                        rental
-                                    }
-
-                                />
-
-
-                            )
-
-                        )
-
-                    }
+                }
 
 
 
@@ -137,15 +164,13 @@ export default async function ProviderDashboard(){
 
 
 
-
             </div>
-
 
 
 
         </main>
 
-
     );
+
 
 }

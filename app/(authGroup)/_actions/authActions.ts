@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
 
-
 const API_URL =
     process.env.BACKEND_API_URL ||
     "http://localhost:8000";
@@ -23,35 +22,46 @@ export async function registerAction(
 ){
 
 
+    const body = {
+
+
+        name:
+        String(
+            formData.get("name") || ""
+        ),
+
+
+        email:
+        String(
+            formData.get("email") || ""
+        ),
+
+
+        password:
+        String(
+            formData.get("password") || ""
+        ),
+
+
+        role:
+        String(
+            formData.get("role") || ""
+        ),
+
+
+    };
+
+
+
+
+
     try{
 
 
-        const body={
-
-
-            name:String(
-                formData.get("name") || ""
-            ),
-
-
-            email:String(
-                formData.get("email") || ""
-            ),
-
-
-            password:String(
-                formData.get("password") || ""
-            ),
-
-
-            role:String(
-                formData.get("role") || ""
-            ),
-
-
-        };
-
-
+        console.log(
+            "REGISTER BODY:",
+            body
+        );
 
 
 
@@ -83,8 +93,19 @@ export async function registerAction(
 
 
 
+
         const result =
         await response.json();
+
+
+
+
+
+        console.log(
+            "REGISTER RESPONSE:",
+            result
+        );
+
 
 
 
@@ -98,9 +119,11 @@ export async function registerAction(
 
                 success:false,
 
+
                 message:
                 result.message ||
                 "Registration failed"
+
 
             };
 
@@ -111,10 +134,17 @@ export async function registerAction(
 
 
 
+        return {
 
-        redirect("/login");
+
+            success:true,
 
 
+            message:
+            "Account created successfully"
+
+
+        };
 
 
 
@@ -123,10 +153,19 @@ export async function registerAction(
     catch(error:any){
 
 
+
+        console.log(
+            "REGISTER ERROR:",
+            error
+        );
+
+
+
         return {
 
 
             success:false,
+
 
             message:
             error.message ||
@@ -313,11 +352,6 @@ export async function loginAction(
 
 
 
-        // IMPORTANT:
-        // redirect throws NEXT_REDIRECT internally
-        // so return after it is impossible
-
-
         if(role==="ADMIN"){
 
 
@@ -357,9 +391,6 @@ export async function loginAction(
 
     catch(error:any){
 
-
-
-        // Ignore Next redirect error
 
 
         if(

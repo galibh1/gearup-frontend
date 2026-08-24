@@ -21,15 +21,11 @@ async function getRental(id:string){
     `${API_URL}/api/rentals/${id}`,
 
     {
-
       headers:{
-
         Cookie: cookieStore.toString(),
-
       },
 
       cache:"no-store",
-
     }
 
   );
@@ -55,7 +51,6 @@ async function getRental(id:string){
 
 
 
-
 export default async function RentalDetailsPage({
 
 params,
@@ -63,27 +58,38 @@ params,
 }:{
 
 params: Promise<{
-
-id:string
-
+  id:string
 }>
 
 }){
 
 
-const {id}=await params;
-
-
-const rental =
-await getRental(id);
+  const {id} =
+    await params;
 
 
 
-if(!rental){
+  const rental =
+    await getRental(id);
 
-  notFound();
 
-}
+
+  if(!rental){
+
+    notFound();
+
+  }
+
+
+
+
+  const isPaid =
+    rental.status === "PAID";
+
+
+  const canPay =
+    rental.status === "CONFIRMED";
+
 
 
 
@@ -92,19 +98,16 @@ if(!rental){
 return (
 
 <main
-
 className="
 min-h-screen
 bg-gray-50
 py-12
 px-5
 "
-
 >
 
 
 <div
-
 className="
 max-w-5xl
 mx-auto
@@ -113,7 +116,6 @@ rounded-3xl
 shadow-xl
 p-10
 "
-
 >
 
 
@@ -136,14 +138,12 @@ font-semibold
 
 
 <h1
-
 className="
 mt-8
 text-4xl
 font-bold
 text-gray-900
 "
-
 >
 
 Rental Details
@@ -154,13 +154,11 @@ Rental Details
 
 
 
-
 <div
 
 className="
 mt-8
-space-y-5
-text-lg
+space-y-4
 text-gray-700
 "
 
@@ -168,33 +166,20 @@ text-gray-700
 
 
 <p>
-
-<strong>
-Rental ID:
-</strong>
-
-{" "}
-
+<strong>Rental ID:</strong>{" "}
 {rental.id}
-
 </p>
 
 
 
 <p>
-
-<strong>
-Status:
-</strong>
-
-{" "}
-
+<strong>Status:</strong>{" "}
 
 <span
 
 className="
-bg-green-100
-text-green-700
+bg-yellow-100
+text-yellow-700
 px-4
 py-2
 rounded-full
@@ -204,7 +189,7 @@ font-semibold
 
 >
 
-{rental.status || "PLACED"}
+{rental.status}
 
 </span>
 
@@ -214,12 +199,7 @@ font-semibold
 
 
 <p>
-
-<strong>
-Start Date:
-</strong>
-
-{" "}
+<strong>Start:</strong>{" "}
 
 {
 new Date(
@@ -233,11 +213,7 @@ rental.startDate
 
 <p>
 
-<strong>
-End Date:
-</strong>
-
-{" "}
+<strong>End:</strong>{" "}
 
 {
 new Date(
@@ -246,6 +222,7 @@ rental.endDate
 }
 
 </p>
+
 
 
 </div>
@@ -262,21 +239,17 @@ rental.endDate
 className="
 mt-10
 bg-gray-50
-border
 rounded-2xl
 p-6
 "
 
 >
 
-
 <h2
-
 className="
 text-2xl
 font-bold
 "
-
 >
 
 Provider
@@ -287,11 +260,7 @@ Provider
 
 <p className="mt-3">
 
-<strong>
-Name:
-</strong>
-
-{" "}
+<strong>Name:</strong>{" "}
 
 {rental.provider?.name}
 
@@ -301,15 +270,12 @@ Name:
 
 <p>
 
-<strong>
-Email:
-</strong>
-
-{" "}
+<strong>Email:</strong>{" "}
 
 {rental.provider?.email}
 
 </p>
+
 
 
 </div>
@@ -322,22 +288,14 @@ Email:
 
 
 
-<div
-
-className="
-mt-10
-"
-
->
+<div className="mt-10">
 
 
 <h2
-
 className="
 text-2xl
 font-bold
 "
-
 >
 
 Rental Items
@@ -346,15 +304,7 @@ Rental Items
 
 
 
-
-<div
-
-className="
-mt-5
-space-y-5
-"
-
->
+<div className="mt-5 space-y-5">
 
 
 {
@@ -372,11 +322,9 @@ rounded-2xl
 p-6
 flex
 gap-6
-items-center
 "
 
 >
-
 
 
 <img
@@ -390,28 +338,23 @@ item.gearItem?.imageUrls?.[0]
 alt="gear"
 
 className="
-w-36
-h-36
-rounded-xl
+w-32
+h-32
 object-cover
+rounded-xl
 "
 
 />
 
 
 
-
-
 <div>
 
-
 <h3
-
 className="
 text-xl
 font-bold
 "
-
 >
 
 {item.gearItem?.name}
@@ -421,29 +364,18 @@ font-bold
 
 
 <p>
-Brand: {item.gearItem?.brand || "N/A"}
-</p>
-
-
-<p>
-Category: {item.gearItem?.category?.name || "N/A"}
-</p>
-
-
-<p>
 Quantity: {item.quantity}
 </p>
 
 
 <p>
-Rental Days: {item.rentalDays}
+Days: {item.rentalDays}
 </p>
 
 
 <p>
-Price Per Day: ${item.pricePerDay}
+Price/day: ${item.pricePerDay}
 </p>
-
 
 
 </div>
@@ -457,20 +389,17 @@ Price Per Day: ${item.pricePerDay}
 }
 
 
-</div>
-
 
 </div>
 
 
+</div>
 
 
 
 
 
 
-
-{/* PAYMENT */}
 
 
 
@@ -478,7 +407,7 @@ Price Per Day: ${item.pricePerDay}
 
 className="
 mt-10
-bg-gray-50
+bg-gray-100
 rounded-2xl
 p-8
 "
@@ -501,38 +430,17 @@ Payment Summary
 
 
 
+<div className="mt-5 space-y-4">
 
 
-<div
-
-className="
-mt-6
-space-y-4
-text-lg
-"
-
->
-
-
-
-<div
-
-className="
-flex
-justify-between
-"
-
->
+<div className="flex justify-between">
 
 <span>
 Subtotal
 </span>
 
-
-<span className="font-semibold">
-
+<span>
 ${rental.subtotal}
-
 </span>
 
 
@@ -541,29 +449,18 @@ ${rental.subtotal}
 
 
 
-<div
-
-className="
-flex
-justify-between
-"
-
->
+<div className="flex justify-between">
 
 <span>
-Security Deposit
+Deposit
 </span>
 
-
-<span className="font-semibold">
-
+<span>
 ${rental.depositTotal}
-
 </span>
 
 
 </div>
-
 
 
 
@@ -573,15 +470,14 @@ ${rental.depositTotal}
 
 className="
 border-t
-pt-5
+pt-4
 flex
 justify-between
-text-xl
 font-bold
+text-xl
 "
 
 >
-
 
 <span>
 Total
@@ -607,12 +503,41 @@ ${rental.totalAmount}
 
 
 
+
+
 {
 
-rental.status === "CONFIRMED" ? (
+isPaid ? (
+
+
+<div
+
+className="
+mt-8
+bg-green-100
+text-green-700
+p-5
+rounded-xl
+font-semibold
+"
+
+>
+
+Payment completed successfully.
+
+</div>
+
+
+
+)
+
+:
+
+canPay ? (
 
 
 <div className="mt-8">
+
 
 <PayButton
 
@@ -620,43 +545,40 @@ rentalId={rental.id}
 
 />
 
+
 </div>
 
 
-) : (
+
+)
+
+:
 
 
 <div
 
 className="
 mt-8
-rounded-xl
 bg-yellow-100
-border
-border-yellow-300
+text-yellow-700
 p-5
-text-yellow-800
+rounded-xl
 font-semibold
 "
 
 >
 
-Payment will be available after the provider confirms this rental.
+Waiting for provider confirmation before payment.
 
 </div>
 
 
-)
 
 }
 
 
 
-
 </div>
-
-
-
 
 
 
@@ -666,7 +588,7 @@ Payment will be available after the provider confirms this rental.
 </main>
 
 
-)
+);
 
 
 }

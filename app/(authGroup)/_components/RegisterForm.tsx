@@ -7,7 +7,14 @@ import {
 } from "react";
 
 
-import { toast } from "sonner";
+import {
+    useRouter
+} from "next/navigation";
+
+
+import {
+    toast
+} from "sonner";
 
 
 import {
@@ -36,12 +43,18 @@ import {
 const RegisterForm = () => {
 
 
+const router =
+useRouter();
+
+
+
 
 const [
     state,
     action,
     pending
-] =
+]
+=
 useActionState(
 
     registerAction,
@@ -49,8 +62,6 @@ useActionState(
     null
 
 );
-
-
 
 
 
@@ -73,6 +84,11 @@ useEffect(()=>{
         );
 
 
+        router.push(
+            "/login"
+        );
+
+
     }
     else{
 
@@ -86,7 +102,7 @@ useEffect(()=>{
 
 
 
-},[state]);
+},[state,router]);
 
 
 

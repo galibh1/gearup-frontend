@@ -1,12 +1,23 @@
 "use client";
 
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import {
+    useState,
+    useTransition
+}
+from "react";
+
 
 import {
-    updateRentalStatus
-} from "@/services/provider.service";
+    toast
+}
+from "sonner";
+
+
+import {
+    approveRental
+}
+from "../_actions/provider.actions";
 
 
 
@@ -14,442 +25,463 @@ import {
 
 export default function ProviderRentalCard({
 
-    rental
+rental
 
 }:{
 
-    rental:any
+rental:any;
 
 }){
 
 
-    const router =
-        useRouter();
+const [
+pending,
+startTransition
+]=useTransition();
 
 
-    const [loading,setLoading] =
-        useState(false);
 
+const [
+status,
+setStatus
+]=useState(
+    rental.status
+);
 
 
 
 
 
+function handleApprove(){
 
-    async function confirmRental(){
 
+startTransition(async()=>{
 
-        try{
 
+try{
 
-            setLoading(true);
 
+const result =
+await approveRental(
+    rental.id
+);
 
 
 
-            await updateRentalStatus(
+toast.success(
+    "Rental confirmed successfully"
+);
 
-                rental.id,
 
-                {
-                    status:"CONFIRMED"
-                }
 
-            );
+setStatus(
+    "CONFIRMED"
+);
 
 
 
+}
+catch(error:any){
 
 
-            alert(
-                "Rental confirmed successfully"
-            );
+toast.error(
 
+error.message ||
+"Failed to confirm rental"
 
+);
 
-            router.refresh();
 
+}
 
 
+});
 
-        }
 
+}
 
-        catch(error:any){
 
 
-            console.log(
-                error
-            );
 
 
+return (
 
-            alert(
+<div
 
-                error?.response?.data?.message
-                ||
-                "Failed to confirm rental"
+className="
+border
+rounded-2xl
+p-6
+bg-white
+shadow-md
+space-y-5
+"
 
-            );
+>
 
 
-        }
+<h2
 
+className="
+text-2xl
+font-bold
+"
 
-        finally{
+>
 
+Rental Request
 
-            setLoading(false);
+</h2>
 
 
-        }
 
 
-    }
 
+<div
 
+className="
+space-y-2
+text-gray-700
+"
 
+>
 
 
+<p>
 
+<strong>
+Customer:
+</strong>
 
+{" "}
 
+{rental.customer?.name}
 
-    return (
+</p>
 
 
-        <div
 
-            className="
-            bg-white
-            rounded-2xl
-            shadow-sm
-            border
-            border-gray-100
-            p-6
-            "
 
-        >
+<p>
 
+<strong>
+Email:
+</strong>
 
+{" "}
 
+{rental.customer?.email}
 
+</p>
 
-            <div
 
-                className="
-                flex
-                justify-between
-                items-start
-                "
 
-            >
 
+<p>
 
+<strong>
+Rental ID:
+</strong>
 
+{" "}
 
+{rental.id}
 
-                <div>
+</p>
 
 
-                    <h2
 
-                        className="
-                        text-xl
-                        font-bold
-                        text-gray-900
-                        "
 
-                    >
+<p>
 
-                        Rental #{rental.id.slice(0,8)}
+<strong>
+Status:
+</strong>
 
-                    </h2>
+{" "}
 
 
+<span
 
+className="
+px-3
+py-1
+rounded-full
+bg-blue-100
+text-blue-700
+font-semibold
+"
 
+>
 
-                    <p
+{status}
 
-                        className="
-                        mt-3
-                        text-gray-700
-                        "
+</span>
 
-                    >
 
-                        <strong>
-                            Customer:
-                        </strong>
+</p>
 
-                        {" "}
 
-                        {
-                            rental.customer?.name ||
-                            "N/A"
-                        }
 
-                    </p>
 
+<p>
 
+<strong>
+Start Date:
+</strong>
 
+{" "}
 
+{
+new Date(
+rental.startDate
+).toLocaleDateString()
+}
 
+</p>
 
-                    <p
 
-                        className="
-                        text-gray-700
-                        "
 
-                    >
 
-                        <strong>
-                            Email:
-                        </strong>
+<p>
 
-                        {" "}
+<strong>
+End Date:
+</strong>
 
-                        {
-                            rental.customer?.email ||
-                            "N/A"
-                        }
+{" "}
 
-                    </p>
+{
+new Date(
+rental.endDate
+).toLocaleDateString()
+}
 
+</p>
 
 
-                </div>
 
+<p>
 
+<strong>
+Total:
+</strong>
 
+{" "}
 
+${rental.totalAmount}
 
+</p>
 
 
+</div>
 
-                <span
 
-                    className={`
-                    
-                    px-4
-                    py-2
-                    rounded-full
-                    text-sm
-                    font-semibold
-                    
-                    ${
-                        rental.status === "PLACED"
 
-                        ?
 
-                        "bg-yellow-100 text-yellow-700"
 
-                        :
 
-                        rental.status === "CONFIRMED"
 
-                        ?
 
-                        "bg-blue-100 text-blue-700"
+<div>
 
-                        :
 
-                        "bg-green-100 text-green-700"
+<h3
 
-                    }
+className="
+font-bold
+text-lg
+mb-3
+"
 
-                    `}
+>
 
-                >
+Items
 
-                    {
-                        rental.status
-                    }
+</h3>
 
-                </span>
 
 
+<div
 
+className="
+space-y-3
+"
 
-            </div>
+>
 
 
+{
 
+rental.items?.map(
+(item:any)=>(
 
 
+<div
 
+key={item.id}
 
+className="
+border
+rounded-xl
+p-4
+bg-gray-50
+"
 
+>
 
-            <div
 
-                className="
-                mt-6
-                border-t
-                pt-5
-                space-y-2
-                text-gray-700
-                "
+<p
 
-            >
+className="
+font-semibold
+"
 
+>
 
+{
+item.gearItem?.name
+}
 
-                <p>
+</p>
 
 
-                    <strong>
-                        Start:
-                    </strong>
+<p>
 
+Quantity:
 
-                    {" "}
+{" "}
 
+{
+item.quantity
+}
 
-                    {
-                        new Date(
-                            rental.startDate
-                        )
-                        .toLocaleDateString()
-                    }
+</p>
 
 
-                </p>
 
+<p>
 
+Price/day:
 
+{" "}
 
+${item.pricePerDay}
 
+</p>
 
-                <p>
 
 
-                    <strong>
-                        End:
-                    </strong>
+</div>
 
 
-                    {" "}
+)
 
+)
 
-                    {
-                        new Date(
-                            rental.endDate
-                        )
-                        .toLocaleDateString()
-                    }
 
+}
 
-                </p>
 
 
+</div>
 
 
+</div>
 
 
 
-                <p
 
-                    className="
-                    font-bold
-                    text-lg
-                    mt-4
-                    "
 
-                >
 
-                    Total:
 
-                    {" "}
 
-                    ${rental.totalAmount}
 
+{
 
-                </p>
+status==="PLACED"
 
+&&
 
 
+<button
 
+onClick={handleApprove}
 
-            </div>
+disabled={pending}
 
+className="
+bg-green-600
+text-white
+px-6
+py-3
+rounded-xl
+font-semibold
+hover:bg-green-700
+disabled:opacity-50
+"
 
+>
 
 
+{
 
+pending
 
+?
 
+"Confirming..."
 
+:
 
-            {
-                rental.status === "PLACED" && (
+"Approve Rental"
 
+}
 
-                    <button
 
+</button>
 
-                        onClick={
-                            confirmRental
-                        }
 
+}
 
 
-                        disabled={
-                            loading
-                        }
 
 
 
-                        className="
-                        mt-6
-                        w-full
-                        bg-green-600
-                        text-white
-                        py-3
-                        rounded-xl
-                        font-semibold
-                        hover:bg-green-700
-                        disabled:opacity-50
-                        transition
-                        "
+{
 
-                    >
+status==="CONFIRMED"
 
+&&
 
 
-                        {
+<div
 
-                            loading
+className="
+bg-green-100
+text-green-700
+rounded-xl
+p-4
+font-semibold
+"
 
-                            ?
+>
 
-                            "Confirming..."
+Rental confirmed. Customer can proceed with payment.
 
-                            :
+</div>
 
-                            "Confirm Rental"
 
-                        }
+}
 
 
 
-                    </button>
 
 
-                )
+</div>
 
-            }
 
+);
 
-
-
-
-
-        </div>
-
-
-    );
 
 }
