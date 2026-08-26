@@ -1,13 +1,11 @@
 "use server";
 
-
 import { cookies } from "next/headers";
 
 
 const API_URL =
   process.env.BACKEND_API_URL ||
   "http://localhost:8000";
-
 
 
 
@@ -31,11 +29,19 @@ export async function createRental(data:{
 
   if(!token){
 
-    throw new Error(
-      "You must login before renting gear"
-    );
+    return {
+      success:false,
+      message:"You must login before renting gear"
+    };
 
   }
+
+
+
+  console.log(
+    "RENTAL REQUEST PAYLOAD:",
+    JSON.stringify(data,null,2)
+  );
 
 
 
@@ -50,12 +56,10 @@ export async function createRental(data:{
         "Content-Type":
         "application/json",
 
-
         Authorization:
         `Bearer ${token}`
 
       },
-
 
       body:JSON.stringify(data)
 
@@ -64,19 +68,26 @@ export async function createRental(data:{
 
 
 
-
   const result =
-  await response.json();
+    await response.json();
 
+
+
+  console.log(
+    "RENTAL BACKEND RESPONSE:",
+    result
+  );
 
 
 
   if(!response.ok){
 
-    throw new Error(
-      result.message ||
-      "Failed to create rental"
-    );
+    return {
+      success:false,
+      message:
+        result.message ||
+        "Failed to create rental"
+    };
 
   }
 

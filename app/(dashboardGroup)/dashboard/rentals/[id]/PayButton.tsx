@@ -1,10 +1,9 @@
 "use client";
 
 
-import { useState } from "react";
-import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
-
+import {useState} from "react";
+import {toast} from "sonner";
+import {Loader2} from "lucide-react";
 
 import {
     createPaymentAction
@@ -12,24 +11,18 @@ import {
 
 
 
-interface Props {
-
-    rentalId:string;
-
-}
-
-
-
-
 export default function PayButton({
 
     rentalId
 
-}:Props){
+}:{
+
+    rentalId:string;
+
+}){
 
 
-
-    const [loading,setLoading] =
+    const [loading,setLoading]=
         useState(false);
 
 
@@ -37,6 +30,18 @@ export default function PayButton({
 
 
     async function handlePayment(){
+
+
+        if(!rentalId){
+
+            toast.error(
+                "Rental information missing"
+            );
+
+            return;
+
+        }
+
 
 
         try{
@@ -54,44 +59,43 @@ export default function PayButton({
 
 
             console.log(
-                "STRIPE RESULT:",
                 result
             );
 
 
 
-            const url =
-                result
-                ?.data
-                ?.checkoutSession
-                ?.url;
+
+            if(!result.success){
 
 
-
-            if(!url){
-
-                throw new Error(
-                    "Stripe checkout URL missing"
+                toast.error(
+                    result.message
                 );
+
+                return;
 
             }
 
 
 
-            window.location.href =
-                url;
+
+            window.location.assign(
+                result.checkoutUrl
+            );
 
 
 
         }
-        catch(error:any){
+        catch(error){
+
+
+            console.error(
+                error
+            );
 
 
             toast.error(
-
-                error.message ||
-                "Payment failed"
-
+                "Unable to start payment"
             );
 
 
@@ -110,8 +114,6 @@ export default function PayButton({
 
 
 
-
-
     return (
 
         <button
@@ -120,12 +122,10 @@ export default function PayButton({
 
             disabled={loading}
 
-
             className="
             w-full
             rounded-lg
             bg-green-600
-            px-5
             py-3
             text-white
             font-semibold
@@ -139,32 +139,28 @@ export default function PayButton({
 
         >
 
-
             {
-                loading &&
+                loading ?
+
+                <>
 
                 <Loader2
-
                     className="
                     h-5
                     w-5
                     animate-spin
                     "
-
                 />
 
-            }
+                Redirecting...
 
+                </>
 
-
-            {
-                loading
-                ?
-                "Redirecting..."
                 :
-                "Pay Now"
-            }
 
+                "Pay Now"
+
+            }
 
 
         </button>
