@@ -1,7 +1,6 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 
 const API_URL =
@@ -9,61 +8,57 @@ const API_URL =
     "http://localhost:8000";
 
 
+type PaymentActionResult = {
+    success: boolean;
+    message: string;
+    checkoutUrl?: string;
+};
 
+
+async function getAccessToken(): Promise<string | null> {
+
+    const cookieStore =
+        await cookies();
+
+    return (
+        cookieStore.get(
+            "accessToken"
+        )?.value ?? null
+    );
+
+}
 
 
 export async function createPaymentAction(
     rentalOrderId: string
-) {
-
+): Promise<PaymentActionResult> {
 
     try {
-
 
         if (!rentalOrderId) {
 
             return {
-
                 success: false,
-
                 message:
-                    "Rental order ID missing"
-
+                    "Rental order ID is missing.",
             };
 
         }
 
 
-
-
-        const cookieStore =
-            await cookies();
-
-
-
         const accessToken =
-            cookieStore.get(
-                "accessToken"
-            )?.value;
-
-
+            await getAccessToken();
 
 
         if (!accessToken) {
 
             return {
-
                 success: false,
-
                 message:
-                    "Authentication required"
-
+                    "Authentication required.",
             };
 
         }
-
-
-
 
 
         const response =
@@ -73,38 +68,24 @@ export async function createPaymentAction(
                     method: "POST",
 
                     headers: {
-
                         "Content-Type":
                             "application/json",
 
-                        Cookie:
-                            `accessToken=${accessToken}`
-
+                        Authorization:
+                            `Bearer ${accessToken}`,
                     },
 
-
                     body: JSON.stringify({
-
-                        rentalOrderId
-
+                        rentalOrderId,
                     }),
 
-
-                    cache:
-                        "no-store"
-
+                    cache: "no-store",
                 }
             );
 
 
-
-
-
         const result =
             await response.json();
-
-
-
 
 
         console.log(
@@ -113,27 +94,16 @@ export async function createPaymentAction(
         );
 
 
-
-
-
-
         if (!response.ok) {
 
-
             return {
-
                 success: false,
-
                 message:
-                    result.message ||
-                    "Payment creation failed"
-
+                    result?.message ||
+                    "Payment creation failed.",
             };
 
         }
-
-
-
 
 
         const checkoutUrl =
@@ -143,49 +113,27 @@ export async function createPaymentAction(
                 ?.url;
 
 
-
-
-
         if (!checkoutUrl) {
 
-
             return {
-
                 success: false,
-
                 message:
-                    "Stripe checkout URL missing"
-
+                    "Stripe checkout URL is missing.",
             };
 
         }
 
 
-
-
-
         return {
-
-
             success: true,
-
-
             message:
-                "Checkout created successfully",
-
-
-            checkoutUrl
-
-
+                result?.message ||
+                "Checkout created successfully.",
+            checkoutUrl,
         };
 
 
-
-
-
-
-    } catch (error: any) {
-
+    } catch (error: unknown) {
 
         console.error(
             "PAYMENT ERROR:",
@@ -193,21 +141,120 @@ export async function createPaymentAction(
         );
 
 
-
         return {
-
-
             success: false,
-
-
             message:
-                error.message ||
-                "Payment failed"
-
+                error instanceof Error
+                    ? error.message
+                    : "Payment creation failed.",
         };
-
 
     }
 
+}
+
+
+export async function confirmPaymentAction(
+    stripeSessionId: string
+): Promise<PaymentActionResult> {
+
+    try {
+
+        if (!stripeSessionId) {
+
+            return {
+                success: false,
+                message:
+                    "Stripe session ID is missing.",
+            };
+
+        }
+
+
+        const accessToken =
+            await getAccessToken();
+
+
+        if (!accessToken) {
+
+            return {
+                success: false,
+                message:
+                    "Authentication required.",
+            };
+
+        }
+
+
+        const response =
+            await fetch(
+                `${API_URL}/api/payments/confirm`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        Authorization:
+                            `Bearer ${accessToken}`,
+                    },
+
+                    body: JSON.stringify({
+                        stripeSessionId,
+                    }),
+
+                    cache: "no-store",
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        console.log(
+            "CONFIRM PAYMENT RESPONSE:",
+            result
+        );
+
+
+        if (!response.ok) {
+
+            return {
+                success: false,
+                message:
+                    result?.message ||
+                    "Payment confirmation failed.",
+            };
+
+        }
+
+
+        return {
+            success: true,
+            message:
+                result?.message ||
+                "Payment confirmed successfully.",
+        };
+
+
+    } catch (error: unknown) {
+
+        console.error(
+            "PAYMENT CONFIRMATION ERROR:",
+            error
+        );
+
+
+        return {
+            success: false,
+            message:
+                error instanceof Error
+                    ? error.message
+                    : "Payment confirmation failed.",
+        };
+
+    }
 
 }

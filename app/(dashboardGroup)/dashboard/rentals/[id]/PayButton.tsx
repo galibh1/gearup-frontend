@@ -1,54 +1,39 @@
 "use client";
 
-
-import {useState} from "react";
-import {toast} from "sonner";
-import {Loader2} from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 import {
-    createPaymentAction
+    createPaymentAction,
 } from "./_actions/payment.actions";
 
 
-
 export default function PayButton({
+    rentalId,
+}: {
+    rentalId: string;
+}) {
 
-    rentalId
-
-}:{
-
-    rentalId:string;
-
-}){
-
-
-    const [loading,setLoading]=
+    const [loading, setLoading] =
         useState(false);
 
 
+    async function handlePayment() {
 
-
-
-    async function handlePayment(){
-
-
-        if(!rentalId){
+        if (!rentalId) {
 
             toast.error(
-                "Rental information missing"
+                "Rental information missing."
             );
 
             return;
-
         }
 
 
-
-        try{
-
+        try {
 
             setLoading(true);
-
 
 
             const result =
@@ -57,26 +42,24 @@ export default function PayButton({
                 );
 
 
-
             console.log(
+                "PAYMENT ACTION RESULT:",
                 result
             );
 
 
-
-
-            if(!result.success){
-
+            if (
+                !result.success ||
+                !result.checkoutUrl
+            ) {
 
                 toast.error(
-                    result.message
+                    result.message ||
+                    "Unable to create payment."
                 );
 
                 return;
-
             }
-
-
 
 
             window.location.assign(
@@ -84,88 +67,81 @@ export default function PayButton({
             );
 
 
-
-        }
-        catch(error){
-
+        } catch (error: unknown) {
 
             console.error(
+                "PAYMENT ERROR:",
                 error
             );
 
 
             toast.error(
-                "Unable to start payment"
+                error instanceof Error
+                    ? error.message
+                    : "Unable to start payment."
             );
 
 
-        }
-        finally{
-
+        } finally {
 
             setLoading(false);
 
-
         }
 
-
     }
-
-
 
 
     return (
 
         <button
 
+            type="button"
+
             onClick={handlePayment}
 
             disabled={loading}
 
             className="
-            w-full
-            rounded-lg
-            bg-green-600
-            py-3
-            text-white
-            font-semibold
-            hover:bg-green-700
-            disabled:opacity-50
-            flex
-            justify-center
-            items-center
-            gap-2
+                w-full
+                rounded-lg
+                bg-green-600
+                py-3
+                text-white
+                font-semibold
+                hover:bg-green-700
+                disabled:opacity-50
+                flex
+                justify-center
+                items-center
+                gap-2
             "
 
         >
 
-            {
-                loading ?
+            {loading ? (
 
                 <>
 
-                <Loader2
-                    className="
-                    h-5
-                    w-5
-                    animate-spin
-                    "
-                />
+                    <Loader2
+                        className="
+                            h-5
+                            w-5
+                            animate-spin
+                        "
+                    />
 
-                Redirecting...
+                    Redirecting...
 
                 </>
 
-                :
+            ) : (
 
                 "Pay Now"
 
-            }
-
+            )}
 
         </button>
 
     );
-
 
 }

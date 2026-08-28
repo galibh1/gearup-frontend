@@ -1,245 +1,328 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-import {useState} from "react";
-import {useRouter} from "next/navigation";
+import { createRental } from "../_actions/rental.actions";
 
-import {createRental}
-from "../_actions/rental.actions";
+import DatePicker from "@/components/ui/date-picker";
 
-import DatePicker
-from "@/components/ui/date-picker";
 
+type RentalFormProps = {
+    gearId: string;
+};
 
 
 export default function RentalForm({
+    gearId,
+}: RentalFormProps) {
 
-gearId
+    const router = useRouter();
 
-}:{
 
-gearId:string
+    const [startDate, setStartDate] =
+        useState<Date>();
 
-}){
 
+    const [endDate, setEndDate] =
+        useState<Date>();
 
-const router = useRouter();
 
+    const [loading, setLoading] =
+        useState(false);
 
 
-const [startDate,setStartDate]
-=
-useState<Date>();
+    /*
+     * Rentals cannot start today because the backend
+     * requires the rental start date to be in the future.
+     */
+    function getTomorrow() {
 
+        const tomorrow = new Date();
 
-const [endDate,setEndDate]
-=
-useState<Date>();
+        tomorrow.setHours(0, 0, 0, 0);
 
+        tomorrow.setDate(
+            tomorrow.getDate() + 1
+        );
 
-const [loading,setLoading]
-=
-useState(false);
+        return tomorrow;
 
+    }
 
 
+    function isTodayOrPast(date: Date) {
 
+        const selected =
+            new Date(date);
 
-async function handleRental(){
+        selected.setHours(
+            0,
+            0,
+            0,
+            0
+        );
 
 
-if(!startDate || !endDate){
+        const tomorrow =
+            getTomorrow();
 
-alert(
-"Please select start and end date"
-);
 
-return;
+        return selected < tomorrow;
 
-}
+    }
 
 
+    async function handleRental() {
 
-try{
+        if (!startDate || !endDate) {
 
+            toast.error(
+                "Please select start and end dates."
+            );
 
-setLoading(true);
+            return;
 
+        }
 
 
-await createRental({
+        /*
+         * Prevent today's date and previous dates.
+         */
+        if (isTodayOrPast(startDate)) {
 
-startDate:
-startDate.toISOString(),
+            toast.error(
+                "Rental must start from tomorrow or a future date."
+            );
 
+            return;
 
-endDate:
-endDate.toISOString(),
+        }
 
 
-items:[
+        if (isTodayOrPast(endDate)) {
 
-{
+            toast.error(
+                "End date must be tomorrow or a future date."
+            );
 
-gearItemId:gearId,
+            return;
 
-quantity:1
+        }
 
-}
 
-]
+        /*
+         * End date must be after start date.
+         */
+        const start =
+            new Date(startDate);
 
+        const end =
+            new Date(endDate);
 
-});
 
+        start.setHours(
+            0,
+            0,
+            0,
+            0
+        );
 
+        end.setHours(
+            0,
+            0,
+            0,
+            0
+        );
 
 
-alert(
-"Rental created successfully"
-);
+        if (end <= start) {
 
+            toast.error(
+                "End date must be after the start date."
+            );
 
+            return;
 
-router.push(
-"/dashboard/rentals"
-);
+        }
 
 
+        if (!gearId) {
 
-}
+            toast.error(
+                "Gear information is missing."
+            );
 
+            return;
 
-catch(error:any){
+        }
 
 
-alert(
-error.message ||
-"Something went wrong"
-);
+        try {
 
+            setLoading(true);
 
-}
 
+            /*
+             * Keep the selected calendar date exactly as chosen.
+             *
+             * The existing backend expects the ISO date format.
+             * The DatePicker already produces the correct local
+             * calendar date, so we send its ISO representation.
+             */
+            const result =
+                await createRental({
 
+                    startDate:
+                        startDate.toISOString(),
 
-finally{
+                    endDate:
+                        endDate.toISOString(),
 
+                    items: [
+                        {
+                            gearItemId: gearId,
+                            quantity: 1,
+                        },
+                    ],
 
-setLoading(false);
+                });
 
 
-}
+            console.log(
+                "RENTAL RESULT:",
+                result
+            );
 
 
+            if (!result?.success) {
 
-}
+                toast.error(
+                    result?.message ||
+                    "Failed to create rental."
+                );
 
+                return;
 
+            }
 
 
-return (
+            toast.success(
+                "Rental created successfully!"
+            );
 
-<div>
 
+            router.push(
+                "/dashboard/rentals"
+            );
 
-<div className="
-grid
-md:grid-cols-2
-gap-5
-">
 
+        } catch (error: unknown) {
 
-<div>
+            console.error(
+                "RENTAL ERROR:",
+                error
+            );
 
-<label className="
-block mb-2
-">
 
-Start Date
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Something went wrong while creating the rental."
+            );
 
-</label>
 
+        } finally {
 
-<DatePicker
+            setLoading(false);
 
-value={startDate}
+        }
 
-onChange={setStartDate}
+    }
 
-/>
 
+    return (
 
-</div>
+        <div>
 
+            <div
+                className="
+                    grid
+                    md:grid-cols-2
+                    gap-5
+                "
+            >
 
+                <div>
 
+                    <label
+                        className="
+                            block
+                            mb-2
+                        "
+                    >
+                        Start Date
+                    </label>
 
-<div>
 
-<label className="
-block mb-2
-">
+                    <DatePicker
+                        value={startDate}
+                        onChange={setStartDate}
+                    />
 
-End Date
+                </div>
 
-</label>
 
+                <div>
 
-<DatePicker
+                    <label
+                        className="
+                            block
+                            mb-2
+                        "
+                    >
+                        End Date
+                    </label>
 
-value={endDate}
 
-onChange={setEndDate}
+                    <DatePicker
+                        value={endDate}
+                        onChange={setEndDate}
+                    />
 
-/>
+                </div>
 
+            </div>
 
-</div>
 
+            <button
+                type="button"
+                onClick={handleRental}
+                disabled={loading}
+                className="
+                    mt-8
+                    bg-black
+                    text-white
+                    px-8
+                    py-3
+                    rounded-xl
+                    hover:bg-gray-800
+                    transition
+                    disabled:opacity-50
+                    disabled:cursor-not-allowed
+                "
+            >
 
+                {loading
+                    ? "Creating..."
+                    : "Rent Now"
+                }
 
-</div>
+            </button>
 
+        </div>
 
-
-
-<button
-
-onClick={handleRental}
-
-disabled={loading}
-
-className="
-mt-8
-bg-black
-text-white
-px-8
-py-3
-rounded-xl
-hover:bg-gray-800
-transition
-"
-
->
-
-
-{
-loading
-?
-"Creating..."
-:
-"Rent Now"
-}
-
-
-</button>
-
-
-
-</div>
-
-);
-
+    );
 
 }

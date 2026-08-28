@@ -2,38 +2,37 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
-// import { Navbar } from "@/components/shared/navbar";
-// import { getMe } from "@/service/getMe";
+import QueryProvider from "@/providers/QueryProvider";
 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
-
-
-
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-//   const user = await getMe();
   return (
     <html
       lang="en"
-      className={cn("h-full antialiased", "font-sans", inter.variable)}
+      className={cn(
+        "h-full antialiased",
+        "font-sans",
+        inter.variable
+      )}
     >
       <body className="min-h-full flex flex-col">
+        <QueryProvider>
+          <Toaster
+            position="top-right"
+            richColors
+          />
 
-        <Toaster position="top-right" richColors />
-        {/* {Navbar} */}
-        {/* <Navbar user={user}/> */}
-        {/* <TooltipProvider> */}
           {children}
-        {/* </TooltipProvider> */}
-
-
-        {/* {Footer} */}
+        </QueryProvider>
       </body>
     </html>
-    
   );
 }
