@@ -2,22 +2,30 @@
 
 
 import {
-    getProviderOrders,
-    updateRentalStatus
-} from "@/services/provider.service";
+
+    getAllUsers,
+
+    getAllGear,
+
+    getAllRentals,
+
+    updateUserStatus
+
+}
+from "@/services/admin.service";
 
 
 
 
 
-export async function fetchProviderOrders(){
+export async function fetchUsers(){
 
 
     try{
 
 
         const result =
-        await getProviderOrders();
+        await getAllUsers();
 
 
 
@@ -39,12 +47,13 @@ export async function fetchProviderOrders(){
 
             message:
             error.message ||
-            "Failed to fetch provider orders"
+            "Failed to fetch users"
 
         };
 
 
     }
+
 
 }
 
@@ -54,10 +63,170 @@ export async function fetchProviderOrders(){
 
 
 
+export async function fetchAdminGear(){
 
-export async function confirmRental(
 
-    id:string
+    try{
+
+
+        const result =
+        await getAllGear();
+
+
+
+        return {
+
+            success:true,
+
+            data:result.data,
+
+        };
+
+
+    }catch(error:any){
+
+
+        return {
+
+            success:false,
+
+            message:
+            error.message ||
+            "Failed to fetch gear"
+
+        };
+
+
+    }
+
+
+}
+
+
+
+
+
+
+
+export async function fetchAdminRentals(){
+
+
+    try{
+
+
+        const result =
+        await getAllRentals();
+
+
+
+        return {
+
+            success:true,
+
+            data:result.data,
+
+        };
+
+
+    }catch(error:any){
+
+
+        return {
+
+            success:false,
+
+            message:
+            error.message ||
+            "Failed to fetch rentals"
+
+        };
+
+
+    }
+
+
+}
+
+
+
+
+
+
+
+export async function fetchAdminStats(){
+
+
+    try{
+
+
+        const users =
+        await getAllUsers();
+
+
+        const gear =
+        await getAllGear();
+
+
+        const rentals =
+        await getAllRentals();
+
+
+
+
+        return {
+
+            success:true,
+
+            data:{
+
+                users:
+                users.data.length,
+
+
+                gear:
+                gear.data.length,
+
+
+                rentals:
+                rentals.data.length,
+
+            }
+
+
+        };
+
+
+
+    }catch(error:any){
+
+
+        return {
+
+            success:false,
+
+            message:
+            error.message ||
+            "Failed to fetch statistics"
+
+        };
+
+
+    }
+
+
+}
+
+
+
+
+
+
+
+export async function changeUserStatus(
+
+    id:string,
+
+    status:string
 
 ){
 
@@ -65,13 +234,11 @@ export async function confirmRental(
     try{
 
 
-        await updateRentalStatus(
+        await updateUserStatus(
 
             id,
 
-            {
-                status:"CONFIRMED"
-            }
+            status
 
         );
 
@@ -94,7 +261,7 @@ export async function confirmRental(
 
             message:
             error.message ||
-            "Failed to confirm rental"
+            "Failed to update user status"
 
         };
 

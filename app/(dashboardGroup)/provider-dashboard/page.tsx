@@ -1,176 +1,314 @@
 import {
-    fetchProviderOrders
-}
-from "./_actions/provider.actions";
+    fetchProviderOrders,
+    fetchProviderGear,
+} from "./_actions/provider.actions";
 
 
-import LogoutButton
-from "@/components/shared/LogoutButton";
+import ProviderNavbar
+    from "./_components/ProviderNavbar";
 
 
 import ProviderRentalCard
-from "./_components/ProviderRentalCard";
+    from "./_components/ProviderRentalCard";
 
 
+import ProviderGearSection
+    from "./_components/ProviderGearSection";
 
 
+export default async function ProviderDashboard() {
 
-export default async function ProviderDashboard(){
+    const [
+        ordersResult,
+        gearResult,
+    ] = await Promise.all([
 
+        fetchProviderOrders(),
 
+        fetchProviderGear(),
 
-    const result =
-    await fetchProviderOrders();
-
+    ]);
 
 
     const rentals =
-    result.data || [];
+        ordersResult.data || [];
 
 
-
+    const gear =
+        gearResult.data || [];
 
 
     return (
 
-        <main
+        <div className="
+            min-h-screen
+            bg-gray-50
+        ">
 
-        className="
-        min-h-screen
-        bg-gray-50
-        p-10
-        "
-
-        >
+            <ProviderNavbar />
 
 
-
-            <div
-
-            className="
-            max-w-6xl
-            mx-auto
-            "
-
-            >
+            <main className="
+                max-w-7xl
+                mx-auto
+                px-6
+                md:px-10
+                py-10
+            ">
 
 
+                {/* Page Header */}
 
-                <div
+                <section className="
+                    mb-10
+                ">
 
-                className="
-                flex
-                justify-between
-                items-center
-                mb-8
-                "
+                    <div className="
+                        flex
+                        flex-col
+                        md:flex-row
+                        md:items-end
+                        md:justify-between
+                        gap-4
+                    ">
 
+                        <div>
+
+                            <p className="
+                                text-sm
+                                font-semibold
+                                text-blue-600
+                                uppercase
+                                tracking-wide
+                                mb-2
+                            ">
+
+                                Provider Portal
+
+                            </p>
+
+
+                            <h1 className="
+                                text-4xl
+                                md:text-5xl
+                                font-extrabold
+                                tracking-tight
+                            ">
+
+                                Provider Dashboard
+
+                            </h1>
+
+
+                            <p className="
+                                mt-3
+                                text-gray-600
+                                text-lg
+                            ">
+
+                                Manage your rental requests
+                                and equipment.
+
+                            </p>
+
+                        </div>
+
+
+                        <div className="
+                            flex
+                            gap-3
+                        ">
+
+                            <div className="
+                                bg-white
+                                border
+                                rounded-xl
+                                px-5
+                                py-3
+                                shadow-sm
+                            ">
+
+                                <p className="
+                                    text-xs
+                                    text-gray-500
+                                    font-medium
+                                ">
+
+                                    Rental Requests
+
+                                </p>
+
+                                <p className="
+                                    text-2xl
+                                    font-bold
+                                ">
+
+                                    {rentals.length}
+
+                                </p>
+
+                            </div>
+
+
+                            <div className="
+                                bg-white
+                                border
+                                rounded-xl
+                                px-5
+                                py-3
+                                shadow-sm
+                            ">
+
+                                <p className="
+                                    text-xs
+                                    text-gray-500
+                                    font-medium
+                                ">
+
+                                    My Gear
+
+                                </p>
+
+                                <p className="
+                                    text-2xl
+                                    font-bold
+                                ">
+
+                                    {gear.length}
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                {/* Rental Requests */}
+
+                <section
+                    id="rental-requests"
+                    className="
+                        scroll-mt-28
+                    "
                 >
 
+                    <div className="
+                        flex
+                        items-center
+                        justify-between
+                        mb-6
+                    ">
+
+                        <div>
+
+                            <h2 className="
+                                text-3xl
+                                font-bold
+                            ">
+
+                                Rental Requests
+
+                            </h2>
 
 
-                    <h1
+                            <p className="
+                                text-gray-600
+                                mt-1
+                            ">
 
-                    className="
-                    text-4xl
-                    font-bold
-                    "
+                                Review and manage customer
+                                rental requests.
 
-                    >
+                            </p>
 
-                    Provider Dashboard
-
-                    </h1>
-
+                        </div>
 
 
+                        <span className="
+                            bg-blue-100
+                            text-blue-700
+                            px-4
+                            py-2
+                            rounded-full
+                            font-semibold
+                        ">
 
-                    <LogoutButton />
+                            {rentals.length} requests
 
-
-                </div>
-
-
-
-
-
-
-
-                <div
-
-                className="
-                grid
-                gap-6
-                "
-
-                >
-
-
-
-                {
-
-                    rentals.length===0
-
-                    ?
-
-                    <div
-
-                    className="
-                    bg-white
-                    rounded-xl
-                    p-6
-                    shadow
-                    "
-
-                    >
-
-                    <p>
-                    No rental requests
-                    </p>
+                        </span>
 
                     </div>
 
 
-                    :
+                    <div className="
+                        grid
+                        gap-6
+                    ">
+
+                        {rentals.length === 0 ? (
+
+                            <div className="
+                                bg-white
+                                border
+                                rounded-2xl
+                                p-10
+                                text-center
+                            ">
+
+                                <p className="
+                                    text-gray-600
+                                ">
+
+                                    No rental requests
+                                    available.
+
+                                </p>
+
+                            </div>
+
+                        ) : (
+
+                            rentals.map(
+                                (rental: any) => (
+
+                                    <ProviderRentalCard
+                                        key={rental.id}
+                                        rental={rental}
+                                    />
+
+                                )
+                            )
+
+                        )}
+
+                    </div>
+
+                </section>
 
 
-                    rentals.map(
-                    (rental:any)=>(
+                {/* My Gear */}
 
+                <section
+                    id="my-gear"
+                    className="
+                        scroll-mt-28
+                    "
+                >
 
-                        <ProviderRentalCard
+                    <ProviderGearSection
+                        initialGear={gear}
+                    />
 
-                        key={
-                            rental.id
-                        }
+                </section>
 
-                        rental={
-                            rental
-                        }
+            </main>
 
-                        />
-
-
-                    )
-
-                    )
-
-
-                }
-
-
-
-                </div>
-
-
-
-            </div>
-
-
-
-        </main>
+        </div>
 
     );
-
 
 }
