@@ -1,41 +1,49 @@
 import { getAccessToken } from "@/lib/auth";
 
+
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL;
+    process.env.BACKEND_API_URL;
 
 
+const getHeaders = async () => {
+
+    const token =
+        await getAccessToken();
+
+    return {
+        Authorization:
+            `Bearer ${token}`,
+        "Content-Type":
+            "application/json",
+    };
+
+};
+
+
+
+// ===============================
+// USERS
+// ===============================
 
 export const getAllUsers = async () => {
 
-
-    const token =
-    await getAccessToken();
-
-
-
     const response =
-    await fetch(
-        `${API_URL}/admin/users`,
-        {
-
-            headers:{
-                Authorization:
-                `Bearer ${token}`
-            },
-
-            cache:"no-store"
-
-        }
-    );
-
+        await fetch(
+            `${API_URL}/api/admin/users`,
+            {
+                method: "GET",
+                headers:
+                    await getHeaders(),
+                cache: "no-store",
+            }
+        );
 
 
     const result =
-    await response.json();
+        await response.json();
 
 
-
-    if(!response.ok){
+    if (!response.ok) {
 
         throw new Error(
             result.message ||
@@ -45,66 +53,41 @@ export const getAllUsers = async () => {
     }
 
 
-
     return result;
 
 };
 
 
 
-
-
+// ===============================
+// UPDATE USER STATUS
+// ===============================
 
 export const updateUserStatus = async (
-
-    id:string,
-
-    status:string
-
+    id: string,
+    status: string
 ) => {
 
-
-    const token =
-    await getAccessToken();
-
-
-
     const response =
-    await fetch(
-        `${API_URL}/admin/users/${id}`,
-        {
-
-            method:"PATCH",
-
-            headers:{
-
-                "Content-Type":
-                "application/json",
-
-                Authorization:
-                `Bearer ${token}`
-
-            },
-
-
-            body:JSON.stringify({
-
-                activeStatus:status
-
-            })
-
-
-        }
-    );
-
+        await fetch(
+            `${API_URL}/api/admin/users/${id}`,
+            {
+                method: "PATCH",
+                headers:
+                    await getHeaders(),
+                body: JSON.stringify({
+                    activeStatus:
+                        status,
+                }),
+            }
+        );
 
 
     const result =
-    await response.json();
+        await response.json();
 
 
-
-    if(!response.ok){
+    if (!response.ok) {
 
         throw new Error(
             result.message ||
@@ -114,47 +97,35 @@ export const updateUserStatus = async (
     }
 
 
-
     return result;
 
 };
 
 
 
-
-
+// ===============================
+// GEAR
+// ===============================
 
 export const getAllGear = async () => {
 
-
-    const token =
-    await getAccessToken();
-
-
-
     const response =
-    await fetch(
-        `${API_URL}/admin/gear`,
-        {
-
-            headers:{
-                Authorization:
-                `Bearer ${token}`
-            },
-
-            cache:"no-store"
-
-        }
-    );
-
+        await fetch(
+            `${API_URL}/api/admin/gear`,
+            {
+                method: "GET",
+                headers:
+                    await getHeaders(),
+                cache: "no-store",
+            }
+        );
 
 
     const result =
-    await response.json();
+        await response.json();
 
 
-
-    if(!response.ok){
+    if (!response.ok) {
 
         throw new Error(
             result.message ||
@@ -164,48 +135,35 @@ export const getAllGear = async () => {
     }
 
 
-
     return result;
 
 };
 
 
 
-
-
-
+// ===============================
+// RENTALS
+// ===============================
 
 export const getAllRentals = async () => {
 
-
-    const token =
-    await getAccessToken();
-
-
-
     const response =
-    await fetch(
-        `${API_URL}/admin/rentals`,
-        {
-
-            headers:{
-                Authorization:
-                `Bearer ${token}`
-            },
-
-            cache:"no-store"
-
-        }
-    );
-
+        await fetch(
+            `${API_URL}/api/admin/rentals`,
+            {
+                method: "GET",
+                headers:
+                    await getHeaders(),
+                cache: "no-store",
+            }
+        );
 
 
     const result =
-    await response.json();
+        await response.json();
 
 
-
-    if(!response.ok){
+    if (!response.ok) {
 
         throw new Error(
             result.message ||
@@ -213,7 +171,6 @@ export const getAllRentals = async () => {
         );
 
     }
-
 
 
     return result;

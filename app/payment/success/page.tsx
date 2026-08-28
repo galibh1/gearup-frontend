@@ -1,43 +1,20 @@
-"use client";
-
-import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import PaymentSuccessContent from "./PaymentSuccessContent";
 
 export default function PaymentSuccessPage() {
-
-    const searchParams = useSearchParams();
-
-    const sessionId = searchParams.get(
-        "session_id"
-    );
-
-
     return (
-
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-
-            <div className="bg-white p-10 rounded-xl shadow text-center">
-
-                <h1 className="text-3xl font-bold text-green-600">
-                    Payment Successful 🎉
-                </h1>
-
-
-                <p className="mt-4">
-                    Your rental payment has been completed.
-                </p>
-
-
-                {sessionId && (
-                    <p className="text-sm text-gray-500 mt-3 break-all">
-                        Session:
-                        <br />
-                        {sessionId}
-                    </p>
-                )}
-
-            </div>
-
-        </div>
-
+        <Suspense
+            fallback={
+                <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                    <div className="bg-white p-10 rounded-xl shadow text-center">
+                        <p className="text-gray-600">
+                            Loading payment confirmation...
+                        </p>
+                    </div>
+                </div>
+            }
+        >
+            <PaymentSuccessContent />
+        </Suspense>
     );
 }

@@ -2,293 +2,298 @@ import UserTable from "./_components/UserTable";
 import GearTable from "./_components/GearTable";
 import RentalTable from "./_components/RentalTable";
 
-
-import { fetchUsers } from "./_actions/admin.actions";
-
-
 import {
-  getAllGear,
-  getAllRentals,
-} from "@/services/admin.service";
+    fetchUsers,
+    fetchAdminGear,
+    fetchAdminRentals,
+} from "./_actions/admin.actions";
 
 
+type Result<T> = {
+    success: boolean;
+    data: T[];
+    message?: string;
+};
 
 
-export default async function AdminDashboard(){
+export default async function AdminDashboard() {
+
+    const [
+        usersResult,
+        gearResult,
+        rentalResult,
+    ] = await Promise.all([
+
+        fetchUsers(),
+
+        fetchAdminGear(),
+
+        fetchAdminRentals(),
+
+    ]);
 
 
-
-  const usersResult =
-    await fetchUsers();
-
-
-
-
-  const gearResult =
-    await getAllGear();
+    const users =
+        usersResult.success
+            ? usersResult.data ?? []
+            : [];
 
 
+    const gears =
+        gearResult.success
+            ? gearResult.data ?? []
+            : [];
 
 
-  const rentalResult =
-    await getAllRentals();
-
-
-
-
-
-
-  if(!usersResult.success){
+    const rentals =
+        rentalResult.success
+            ? rentalResult.data ?? []
+            : [];
 
 
     return (
 
-      <div
-        className="
-        p-10
-        text-red-500
-        "
-      >
+        <main
+            className="
+            min-h-screen
+            bg-gray-50
+            p-4
+            sm:p-6
+            lg:p-8
+            "
+        >
 
-        {usersResult.message}
+            <div className="mx-auto max-w-7xl">
 
-      </div>
+
+                {/* Header */}
+
+                <div
+                    className="
+                    mb-8
+                    flex
+                    flex-col
+                    gap-2
+                    "
+                >
+
+                    <h1
+                        className="
+                        text-3xl
+                        font-bold
+                        tracking-tight
+                        text-gray-900
+                        sm:text-4xl
+                        "
+                    >
+                        Admin Dashboard
+                    </h1>
+
+
+                    <p className="text-gray-500">
+
+                        Manage users, gear listings,
+                        and rental orders.
+
+                    </p>
+
+                </div>
+
+
+
+                {/* Statistics */}
+
+                <div
+                    className="
+                    mb-8
+                    grid
+                    gap-4
+                    sm:grid-cols-2
+                    lg:grid-cols-3
+                    "
+                >
+
+
+                    <div
+                        className="
+                        rounded-2xl
+                        border
+                        bg-white
+                        p-6
+                        shadow-sm
+                        "
+                    >
+
+                        <p
+                            className="
+                            text-sm
+                            font-medium
+                            text-gray-500
+                            "
+                        >
+                            Total Users
+                        </p>
+
+
+                        <p
+                            className="
+                            mt-2
+                            text-4xl
+                            font-bold
+                            text-gray-900
+                            "
+                        >
+                            {users.length}
+                        </p>
+
+
+                        {!usersResult.success && (
+
+                            <p
+                                className="
+                                mt-2
+                                text-sm
+                                text-red-500
+                                "
+                            >
+                                {usersResult.message ||
+                                    "User data unavailable"}
+                            </p>
+
+                        )}
+
+                    </div>
+
+
+
+                    <div
+                        className="
+                        rounded-2xl
+                        border
+                        bg-white
+                        p-6
+                        shadow-sm
+                        "
+                    >
+
+                        <p
+                            className="
+                            text-sm
+                            font-medium
+                            text-gray-500
+                            "
+                        >
+                            Total Gear
+                        </p>
+
+
+                        <p
+                            className="
+                            mt-2
+                            text-4xl
+                            font-bold
+                            text-gray-900
+                            "
+                        >
+                            {gears.length}
+                        </p>
+
+
+                        {!gearResult.success && (
+
+                            <p
+                                className="
+                                mt-2
+                                text-sm
+                                text-red-500
+                                "
+                            >
+                                {gearResult.message ||
+                                    "Gear data unavailable"}
+                            </p>
+
+                        )}
+
+                    </div>
+
+
+
+                    <div
+                        className="
+                        rounded-2xl
+                        border
+                        bg-white
+                        p-6
+                        shadow-sm
+                        "
+                    >
+
+                        <p
+                            className="
+                            text-sm
+                            font-medium
+                            text-gray-500
+                            "
+                        >
+                            Total Rentals
+                        </p>
+
+
+                        <p
+                            className="
+                            mt-2
+                            text-4xl
+                            font-bold
+                            text-gray-900
+                            "
+                        >
+                            {rentals.length}
+                        </p>
+
+
+                        {!rentalResult.success && (
+
+                            <p
+                                className="
+                                mt-2
+                                text-sm
+                                text-red-500
+                                "
+                            >
+                                {rentalResult.message ||
+                                    "Rental data unavailable"}
+                            </p>
+
+                        )}
+
+                    </div>
+
+
+                </div>
+
+
+
+                {/* User Management */}
+
+                <UserTable users={users} />
+
+
+
+                {/* Gear Management */}
+
+                <GearTable gears={gears} />
+
+
+
+                {/* Rental Management */}
+
+                <RentalTable rentals={rentals} />
+
+
+            </div>
+
+        </main>
 
     );
-
-  }
-
-
-
-
-
-  return (
-
-    <main
-      className="
-      min-h-screen
-      bg-gray-50
-      p-8
-      "
-    >
-
-
-
-
-      <h1
-        className="
-        text-4xl
-        font-bold
-        mb-8
-        "
-      >
-
-        Admin Dashboard
-
-      </h1>
-
-
-
-
-
-
-      {/* Statistics Cards */}
-
-      <div
-        className="
-        grid
-        md:grid-cols-3
-        gap-6
-        mb-8
-        "
-      >
-
-
-
-
-        {/* Users */}
-
-        <div
-          className="
-          rounded-2xl
-          bg-white
-          p-6
-          shadow-sm
-          border
-          "
-        >
-
-          <p className="text-gray-500">
-
-            Total Users
-
-          </p>
-
-
-          <h2
-            className="
-            text-4xl
-            font-bold
-            mt-2
-            "
-          >
-
-            {
-              usersResult.data.length
-            }
-
-          </h2>
-
-
-        </div>
-
-
-
-
-
-
-
-        {/* Gear */}
-
-        <div
-          className="
-          rounded-2xl
-          bg-white
-          p-6
-          shadow-sm
-          border
-          "
-        >
-
-          <p className="text-gray-500">
-
-            Total Gear
-
-          </p>
-
-
-          <h2
-            className="
-            text-4xl
-            font-bold
-            mt-2
-            "
-          >
-
-            {
-              gearResult.data.length
-            }
-
-          </h2>
-
-
-        </div>
-
-
-
-
-
-
-
-        {/* Rentals */}
-
-        <div
-          className="
-          rounded-2xl
-          bg-white
-          p-6
-          shadow-sm
-          border
-          "
-        >
-
-          <p className="text-gray-500">
-
-            Total Rentals
-
-          </p>
-
-
-          <h2
-            className="
-            text-4xl
-            font-bold
-            mt-2
-            "
-          >
-
-            {
-              rentalResult.data.length
-            }
-
-          </h2>
-
-
-        </div>
-
-
-
-
-      </div>
-
-
-
-
-
-
-
-      {/* User Management */}
-
-      <UserTable
-
-        users={
-          usersResult.data
-        }
-
-      />
-
-
-
-
-
-
-
-
-      {/* Gear Moderation */}
-
-      <GearTable
-
-        gears={
-          gearResult.data
-        }
-
-      />
-
-
-
-
-
-
-
-
-
-      {/* Rental Moderation */}
-
-      <RentalTable
-
-        rentals={
-          rentalResult.data
-        }
-
-      />
-
-
-
-
-
-    </main>
-
-  );
-
 
 }
