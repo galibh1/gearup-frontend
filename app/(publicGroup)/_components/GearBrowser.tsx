@@ -70,9 +70,7 @@ export default function GearBrowser({
         });
 
 
-    /* =========================================================
-       HELPERS
-    ========================================================= */
+    
 
     function getCategory(
         gear: Gear
@@ -148,9 +146,7 @@ export default function GearBrowser({
         }, [gears]);
 
 
-    /* =========================================================
-       FILTERING
-    ========================================================= */
+  
 
     const filteredGears =
         useMemo(() => {
@@ -264,9 +260,7 @@ export default function GearBrowser({
         ]);
 
 
-    /* =========================================================
-       APPLY
-    ========================================================= */
+   
 
     function applyFilters() {
 
@@ -281,9 +275,7 @@ export default function GearBrowser({
     }
 
 
-    /* =========================================================
-       RESET
-    ========================================================= */
+   
 
     function resetFilters() {
 
@@ -309,9 +301,7 @@ export default function GearBrowser({
     }
 
 
-    /* =========================================================
-       ENTER SEARCH
-    ========================================================= */
+   
 
     function handleSearchKeyDown(
         event: React.KeyboardEvent<HTMLInputElement>
