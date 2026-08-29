@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { logoutAction } from "../../(authGroup)/_actions/logoutAction";
+
 export default function CustomerDashboard() {
     return (
         <main className="min-h-screen bg-[#f2efe4] text-[#211f1a]">
@@ -60,22 +62,66 @@ export default function CustomerDashboard() {
                     </nav>
 
 
-                    {/* Account */}
+                    {/* Account + Logout */}
 
-                    <Link
-                        href="/dashboard/profile"
-                        className="flex items-center gap-3 rounded-full border border-black/[0.08] bg-white px-3 py-2 transition hover:border-[#d97757]"
-                    >
+                    <div className="flex items-center gap-2">
 
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#dce4d7] text-sm font-bold text-[#66765a]">
-                            G
-                        </div>
+                        <Link
+                            href="/dashboard/profile"
+                            className="
+                                flex
+                                items-center
+                                gap-3
+                                rounded-full
+                                border
+                                border-black/[0.08]
+                                bg-white
+                                px-3
+                                py-2
+                                transition
+                                hover:border-[#d97757]
+                            "
+                        >
 
-                        <span className="hidden text-sm font-semibold sm:block">
-                            My Account
-                        </span>
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#dce4d7] text-sm font-bold text-[#66765a]">
+                                G
+                            </div>
 
-                    </Link>
+                            <span className="hidden text-sm font-semibold sm:block">
+                                My Account
+                            </span>
+
+                        </Link>
+
+
+                        {/* Logout */}
+
+                        <form action={logoutAction}>
+
+                            <button
+                                type="submit"
+                                className="
+                                    rounded-full
+                                    border
+                                    border-black/[0.08]
+                                    bg-white
+                                    px-4
+                                    py-2.5
+                                    text-sm
+                                    font-semibold
+                                    text-[#726c60]
+                                    transition
+                                    hover:border-[#d97757]
+                                    hover:bg-[#fdf4ef]
+                                    hover:text-[#bd5f3f]
+                                "
+                            >
+                                Logout
+                            </button>
+
+                        </form>
+
+                    </div>
 
                 </div>
 
