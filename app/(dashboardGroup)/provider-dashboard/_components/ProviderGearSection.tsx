@@ -6,9 +6,7 @@ import {
     useTransition,
 } from "react";
 
-import {
-    toast,
-} from "sonner";
+import { toast } from "sonner";
 
 import {
     fetchProviderGear,
@@ -19,120 +17,75 @@ import {
 } from "../_actions/provider.actions";
 
 
+type Category = {
+    id: string;
+    name: string;
+};
+
+
+type GearItem = {
+    id: string;
+    name: string;
+    brand?: string;
+    pricePerDay?: string | number;
+    depositAmount?: string | number;
+    stock?: number;
+    availableStock?: number;
+    condition?: string;
+    status?: string;
+    location?: string;
+    description?: string;
+};
+
+
 export default function ProviderGearSection({
     initialGear,
 }: {
-    initialGear: any[];
+    initialGear: GearItem[];
 }) {
 
     const [gear, setGear] =
-        useState<any[]>(
-            initialGear || []
-        );
-
+        useState<GearItem[]>(initialGear || []);
 
     const [categories, setCategories] =
-        useState<any[]>([]);
-
+        useState<Category[]>([]);
 
     const [showAddForm, setShowAddForm] =
         useState(false);
 
-
-    const [categoriesLoading, setCategoriesLoading] =
-        useState(false);
-
-
     const [editingId, setEditingId] =
         useState<string | null>(null);
-
 
     const [pending, startTransition] =
         useTransition();
 
 
-    /* -----------------------------
-       ADD FORM
-    ----------------------------- */
-
-    const [name, setName] =
-        useState("");
-
-    const [brand, setBrand] =
-        useState("");
-
-    const [price, setPrice] =
-        useState("");
-
-    const [depositAmount, setDepositAmount] =
-        useState("");
-
-    const [stock, setStock] =
-        useState("");
-
-    const [availableStock, setAvailableStock] =
-        useState("");
-
-    const [condition, setCondition] =
-        useState("GOOD");
-
-    const [location, setLocation] =
-        useState("");
-
-    const [description, setDescription] =
-        useState("");
-
-    const [categoryId, setCategoryId] =
-        useState("");
+    // ADD FORM
+    const [name, setName] = useState("");
+    const [brand, setBrand] = useState("");
+    const [price, setPrice] = useState("");
+    const [depositAmount, setDepositAmount] = useState("");
+    const [stock, setStock] = useState("");
+    const [availableStock, setAvailableStock] = useState("");
+    const [condition, setCondition] = useState("GOOD");
+    const [location, setLocation] = useState("");
+    const [description, setDescription] = useState("");
+    const [categoryId, setCategoryId] = useState("");
 
 
-    /* -----------------------------
-       EDIT FORM
-    ----------------------------- */
-
-    const [editPrice, setEditPrice] =
-        useState("");
-
-    const [editStock, setEditStock] =
-        useState("");
-
-    const [editDescription, setEditDescription] =
-        useState("");
+    // EDIT FORM
+    const [editPrice, setEditPrice] = useState("");
+    const [editStock, setEditStock] = useState("");
+    const [editDescription, setEditDescription] = useState("");
 
 
-    /* -----------------------------
-       SYNC INITIAL GEAR
-    ----------------------------- */
-
+    // LOAD CATEGORIES
     useEffect(() => {
 
-        setGear(
-            initialGear || []
-        );
-
-    }, [initialGear]);
-
-
-    /* -----------------------------
-       LOAD CATEGORIES
-       ONLY WHEN ADD FORM OPENS
-    ----------------------------- */
-
-    async function loadCategories() {
-
-        if (categories.length > 0) {
-            return;
-        }
-
-
-        setCategoriesLoading(true);
-
-
-        try {
+        async function loadCategories() {
 
             const result =
                 await fetchCategories();
-
 
             if (!result.success) {
 
@@ -142,60 +95,17 @@ export default function ProviderGearSection({
                 );
 
                 return;
-
             }
 
-
             setCategories(
-                result.data || []
+                (result.data || []) as Category[]
             );
-
-        } catch (error: any) {
-
-            toast.error(
-                error.message ||
-                "Failed to load categories"
-            );
-
-        } finally {
-
-            setCategoriesLoading(false);
-
         }
 
-    }
+        loadCategories();
 
+    }, []);
 
-    /* -----------------------------
-       ADD FORM TOGGLE
-    ----------------------------- */
-
-    function toggleAddForm() {
-
-        const nextState =
-            !showAddForm;
-
-
-        setShowAddForm(
-            nextState
-        );
-
-
-        if (
-            nextState &&
-            categories.length === 0
-        ) {
-
-            loadCategories();
-
-        }
-
-    }
-
-
-    /* -----------------------------
-       RESET ADD FORM
-    ----------------------------- */
 
     function resetAddForm() {
 
@@ -216,29 +126,20 @@ export default function ProviderGearSection({
     function closeAddForm() {
 
         setShowAddForm(false);
-
         resetAddForm();
 
     }
 
 
-    /* -----------------------------
-       CREATE GEAR
-    ----------------------------- */
-
+    // ADD GEAR
     function handleAddGear() {
 
-        const parsedPrice =
-            Number(price);
-
-        const parsedDeposit =
-            Number(depositAmount);
-
-        const parsedStock =
-            Number(stock);
-
-        const parsedAvailableStock =
-            Number(availableStock);
+        const parsedPrice = Number(price);
+        const parsedDeposit = Number(depositAmount);
+        const parsedStock = Number(stock);
+        const parsedAvailableStock = Number(
+            availableStock
+        );
 
 
         if (!name.trim()) {
@@ -248,12 +149,10 @@ export default function ProviderGearSection({
             );
 
             return;
-
         }
 
 
         if (
-            !price ||
             Number.isNaN(parsedPrice) ||
             parsedPrice < 0
         ) {
@@ -263,12 +162,10 @@ export default function ProviderGearSection({
             );
 
             return;
-
         }
 
 
         if (
-            !depositAmount ||
             Number.isNaN(parsedDeposit) ||
             parsedDeposit < 0
         ) {
@@ -278,12 +175,10 @@ export default function ProviderGearSection({
             );
 
             return;
-
         }
 
 
         if (
-            !stock ||
             Number.isNaN(parsedStock) ||
             parsedStock < 0
         ) {
@@ -293,12 +188,10 @@ export default function ProviderGearSection({
             );
 
             return;
-
         }
 
 
         if (
-            !availableStock ||
             Number.isNaN(parsedAvailableStock) ||
             parsedAvailableStock < 0 ||
             parsedAvailableStock > parsedStock
@@ -309,7 +202,6 @@ export default function ProviderGearSection({
             );
 
             return;
-
         }
 
 
@@ -320,18 +212,6 @@ export default function ProviderGearSection({
             );
 
             return;
-
-        }
-
-
-        if (categoriesLoading) {
-
-            toast.error(
-                "Please wait for categories to load"
-            );
-
-            return;
-
         }
 
 
@@ -354,16 +234,14 @@ export default function ProviderGearSection({
             const result =
                 await addProviderGear({
 
-                    name:
-                        name.trim(),
+                    name: name.trim(),
 
                     slug,
 
                     description:
                         description.trim(),
 
-                    brand:
-                        brand.trim(),
+                    brand: brand.trim(),
 
                     pricePerDay:
                         parsedPrice,
@@ -405,7 +283,6 @@ export default function ProviderGearSection({
                 );
 
                 return;
-
             }
 
 
@@ -422,14 +299,14 @@ export default function ProviderGearSection({
             if (refreshed.success) {
 
                 setGear(
-                    refreshed.data || []
+                    (refreshed.data || []) as GearItem[]
                 );
 
             } else if (result.data) {
 
                 setGear(
                     (current) => [
-                        result.data,
+                        result.data as GearItem,
                         ...current,
                     ]
                 );
@@ -444,15 +321,12 @@ export default function ProviderGearSection({
     }
 
 
-    /* -----------------------------
-       EDIT
-    ----------------------------- */
+    // START EDIT
+    function startEdit(
+        item: GearItem
+    ) {
 
-    function startEdit(item: any) {
-
-        setEditingId(
-            item.id
-        );
+        setEditingId(item.id);
 
         setEditPrice(
             String(
@@ -473,6 +347,7 @@ export default function ProviderGearSection({
     }
 
 
+    // CANCEL EDIT
     function cancelEdit() {
 
         setEditingId(null);
@@ -486,7 +361,10 @@ export default function ProviderGearSection({
     }
 
 
-    function saveEdit(id: string) {
+    // SAVE EDIT
+    function saveEdit(
+        id: string
+    ) {
 
         const parsedPrice =
             Number(editPrice);
@@ -506,7 +384,6 @@ export default function ProviderGearSection({
             );
 
             return;
-
         }
 
 
@@ -521,7 +398,6 @@ export default function ProviderGearSection({
             );
 
             return;
-
         }
 
 
@@ -551,7 +427,6 @@ export default function ProviderGearSection({
                 );
 
                 return;
-
             }
 
 
@@ -590,11 +465,10 @@ export default function ProviderGearSection({
     }
 
 
-    /* -----------------------------
-       DELETE
-    ----------------------------- */
-
-    function deleteGear(id: string) {
+    // DELETE
+    function deleteGear(
+        id: string
+    ) {
 
         const confirmed =
             window.confirm(
@@ -610,9 +484,7 @@ export default function ProviderGearSection({
         startTransition(async () => {
 
             const result =
-                await removeProviderGear(
-                    id
-                );
+                await removeProviderGear(id);
 
 
             if (!result.success) {
@@ -623,7 +495,6 @@ export default function ProviderGearSection({
                 );
 
                 return;
-
             }
 
 
@@ -658,82 +529,129 @@ export default function ProviderGearSection({
 
             {/* HEADER */}
 
-            <div className="
-                flex
-                flex-col
-                sm:flex-row
-                sm:items-center
-                sm:justify-between
-                gap-4
-                mb-6
-            ">
+            <div
+                className="
+                    mb-7
+                    flex
+                    flex-col
+                    gap-5
+                    sm:flex-row
+                    sm:items-end
+                    sm:justify-between
+                "
+            >
 
                 <div>
 
-                    <h2 className="
-                        text-3xl
-                        font-bold
-                    ">
+                    <div
+                        className="
+                            mb-3
+                            flex
+                            items-center
+                            gap-3
+                        "
+                    >
 
+                        <span
+                            className="
+                                h-px
+                                w-6
+                                bg-[#dc7755]
+                            "
+                        />
+
+                        <p
+                            className="
+                                text-xs
+                                font-bold
+                                uppercase
+                                tracking-[0.2em]
+                                text-[#dc7755]
+                            "
+                        >
+                            Inventory
+                        </p>
+
+                    </div>
+
+
+                    <h2
+                        className="
+                            text-3xl
+                            font-black
+                            tracking-tight
+                            md:text-4xl
+                        "
+                    >
                         My Gear
-
                     </h2>
 
 
-                    <p className="
-                        text-gray-600
-                        mt-1
-                    ">
-
-                        Manage the gear you offer
-                        for rental.
-
+                    <p
+                        className="
+                            mt-2
+                            text-[#777267]
+                        "
+                    >
+                        Manage the equipment you
+                        offer for rental.
                     </p>
 
                 </div>
 
 
-                <div className="
-                    flex
-                    items-center
-                    gap-3
-                ">
+                <div
+                    className="
+                        flex
+                        items-center
+                        gap-3
+                    "
+                >
 
-                    <div className="
-                        bg-blue-100
-                        text-blue-700
-                        px-4
-                        py-2
-                        rounded-full
-                        font-semibold
-                    ">
-
-                        {gear.length} items
-
+                    <div
+                        className="
+                            rounded-full
+                            border
+                            border-[#d9e3d2]
+                            bg-[#e7eee2]
+                            px-4
+                            py-2
+                            text-sm
+                            font-bold
+                            text-[#617258]
+                        "
+                    >
+                        {gear.length}{" "}
+                        {gear.length === 1
+                            ? "item"
+                            : "items"}
                     </div>
 
 
                     <button
                         type="button"
-                        onClick={toggleAddForm}
+                        onClick={() =>
+                            setShowAddForm(
+                                !showAddForm
+                            )
+                        }
                         className="
-                            bg-blue-600
-                            hover:bg-blue-700
-                            text-white
+                            rounded-full
+                            bg-[#dc7755]
                             px-5
                             py-2.5
-                            rounded-xl
-                            font-semibold
+                            text-sm
+                            font-bold
+                            text-white
                             shadow-sm
                             transition
+                            hover:-translate-y-0.5
+                            hover:bg-[#cf6c4b]
                         "
                     >
-
                         {showAddForm
                             ? "Close"
-                            : "+ Add Gear"
-                        }
-
+                            : "+ Add Gear"}
                     </button>
 
                 </div>
@@ -745,63 +663,82 @@ export default function ProviderGearSection({
 
             {showAddForm && (
 
-                <div className="
-                    bg-white
-                    border
-                    rounded-2xl
-                    p-6
-                    md:p-8
-                    shadow-sm
-                    mb-8
-                ">
+                <div
+                    className="
+                        mb-8
+                        rounded-[28px]
+                        border
+                        border-[#e5ded2]
+                        bg-white
+                        p-6
+                        shadow-sm
+                        md:p-8
+                    "
+                >
 
-                    <div className="
-                        mb-6
-                    ">
+                    <div className="mb-7">
 
-                        <h3 className="
-                            text-2xl
-                            font-bold
-                        ">
+                        <p
+                            className="
+                                text-xs
+                                font-bold
+                                uppercase
+                                tracking-[0.18em]
+                                text-[#dc7755]
+                            "
+                        >
+                            New listing
+                        </p>
 
+
+                        <h3
+                            className="
+                                mt-2
+                                text-2xl
+                                font-black
+                            "
+                        >
                             Add New Gear
-
                         </h3>
 
 
-                        <p className="
-                            text-gray-600
-                            mt-1
-                        ">
-
+                        <p
+                            className="
+                                mt-1
+                                text-sm
+                                text-[#777267]
+                            "
+                        >
                             Add equipment to your
                             rental inventory.
-
                         </p>
 
                     </div>
 
 
-                    <div className="
-                        grid
-                        grid-cols-1
-                        md:grid-cols-2
-                        gap-5
-                    ">
+                    <div
+                        className="
+                            grid
+                            grid-cols-1
+                            gap-5
+                            md:grid-cols-2
+                        "
+                    >
 
                         {/* NAME */}
 
                         <div>
 
-                            <label className="
-                                block
-                                text-sm
-                                font-semibold
-                                mb-2
-                            ">
-
+                            <label
+                                className="
+                                    mb-2
+                                    block
+                                    text-sm
+                                    font-bold
+                                    text-[#34322d]
+                                "
+                            >
                                 Gear Name *
-
                             </label>
 
 
@@ -815,13 +752,17 @@ export default function ProviderGearSection({
                                 placeholder="e.g. Canon EOS R5"
                                 className="
                                     w-full
+                                    rounded-2xl
                                     border
-                                    rounded-xl
+                                    border-[#ddd7cb]
+                                    bg-[#faf9f6]
                                     px-4
                                     py-3
+                                    text-sm
                                     outline-none
-                                    focus:ring-2
-                                    focus:ring-blue-500
+                                    transition
+                                    focus:border-[#dc7755]
+                                    focus:bg-white
                                 "
                             />
 
@@ -832,15 +773,16 @@ export default function ProviderGearSection({
 
                         <div>
 
-                            <label className="
-                                block
-                                text-sm
-                                font-semibold
-                                mb-2
-                            ">
-
+                            <label
+                                className="
+                                    mb-2
+                                    block
+                                    text-sm
+                                    font-bold
+                                    text-[#34322d]
+                                "
+                            >
                                 Brand
-
                             </label>
 
 
@@ -854,13 +796,17 @@ export default function ProviderGearSection({
                                 placeholder="e.g. Canon"
                                 className="
                                     w-full
+                                    rounded-2xl
                                     border
-                                    rounded-xl
+                                    border-[#ddd7cb]
+                                    bg-[#faf9f6]
                                     px-4
                                     py-3
+                                    text-sm
                                     outline-none
-                                    focus:ring-2
-                                    focus:ring-blue-500
+                                    transition
+                                    focus:border-[#dc7755]
+                                    focus:bg-white
                                 "
                             />
 
@@ -871,39 +817,67 @@ export default function ProviderGearSection({
 
                         <div>
 
-                            <label className="
-                                block
-                                text-sm
-                                font-semibold
-                                mb-2
-                            ">
-
+                            <label
+                                className="
+                                    mb-2
+                                    block
+                                    text-sm
+                                    font-bold
+                                    text-[#34322d]
+                                "
+                            >
                                 Price Per Day *
-
                             </label>
 
 
-                            <input
-                                type="number"
-                                min="0"
-                                value={price}
-                                onChange={(e) =>
-                                    setPrice(
-                                        e.target.value
-                                    )
-                                }
-                                placeholder="0"
+                            <div
                                 className="
-                                    w-full
-                                    border
-                                    rounded-xl
-                                    px-4
-                                    py-3
-                                    outline-none
-                                    focus:ring-2
-                                    focus:ring-blue-500
+                                    relative
                                 "
-                            />
+                            >
+
+                                <span
+                                    className="
+                                        absolute
+                                        left-4
+                                        top-1/2
+                                        -translate-y-1/2
+                                        text-sm
+                                        font-bold
+                                        text-[#8b8579]
+                                    "
+                                >
+                                    $
+                                </span>
+
+
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={price}
+                                    onChange={(e) =>
+                                        setPrice(
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="0"
+                                    className="
+                                        w-full
+                                        rounded-2xl
+                                        border
+                                        border-[#ddd7cb]
+                                        bg-[#faf9f6]
+                                        py-3
+                                        pl-8
+                                        pr-4
+                                        text-sm
+                                        outline-none
+                                        focus:border-[#dc7755]
+                                        focus:bg-white
+                                    "
+                                />
+
+                            </div>
 
                         </div>
 
@@ -912,39 +886,67 @@ export default function ProviderGearSection({
 
                         <div>
 
-                            <label className="
-                                block
-                                text-sm
-                                font-semibold
-                                mb-2
-                            ">
-
+                            <label
+                                className="
+                                    mb-2
+                                    block
+                                    text-sm
+                                    font-bold
+                                    text-[#34322d]
+                                "
+                            >
                                 Deposit Amount *
-
                             </label>
 
 
-                            <input
-                                type="number"
-                                min="0"
-                                value={depositAmount}
-                                onChange={(e) =>
-                                    setDepositAmount(
-                                        e.target.value
-                                    )
-                                }
-                                placeholder="0"
+                            <div
                                 className="
-                                    w-full
-                                    border
-                                    rounded-xl
-                                    px-4
-                                    py-3
-                                    outline-none
-                                    focus:ring-2
-                                    focus:ring-blue-500
+                                    relative
                                 "
-                            />
+                            >
+
+                                <span
+                                    className="
+                                        absolute
+                                        left-4
+                                        top-1/2
+                                        -translate-y-1/2
+                                        text-sm
+                                        font-bold
+                                        text-[#8b8579]
+                                    "
+                                >
+                                    $
+                                </span>
+
+
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={depositAmount}
+                                    onChange={(e) =>
+                                        setDepositAmount(
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="0"
+                                    className="
+                                        w-full
+                                        rounded-2xl
+                                        border
+                                        border-[#ddd7cb]
+                                        bg-[#faf9f6]
+                                        py-3
+                                        pl-8
+                                        pr-4
+                                        text-sm
+                                        outline-none
+                                        focus:border-[#dc7755]
+                                        focus:bg-white
+                                    "
+                                />
+
+                            </div>
 
                         </div>
 
@@ -953,15 +955,16 @@ export default function ProviderGearSection({
 
                         <div>
 
-                            <label className="
-                                block
-                                text-sm
-                                font-semibold
-                                mb-2
-                            ">
-
+                            <label
+                                className="
+                                    mb-2
+                                    block
+                                    text-sm
+                                    font-bold
+                                    text-[#34322d]
+                                "
+                            >
                                 Total Stock *
-
                             </label>
 
 
@@ -977,32 +980,36 @@ export default function ProviderGearSection({
                                 placeholder="1"
                                 className="
                                     w-full
+                                    rounded-2xl
                                     border
-                                    rounded-xl
+                                    border-[#ddd7cb]
+                                    bg-[#faf9f6]
                                     px-4
                                     py-3
+                                    text-sm
                                     outline-none
-                                    focus:ring-2
-                                    focus:ring-blue-500
+                                    focus:border-[#dc7755]
+                                    focus:bg-white
                                 "
                             />
 
                         </div>
 
 
-                        {/* AVAILABLE STOCK */}
+                        {/* AVAILABLE */}
 
                         <div>
 
-                            <label className="
-                                block
-                                text-sm
-                                font-semibold
-                                mb-2
-                            ">
-
+                            <label
+                                className="
+                                    mb-2
+                                    block
+                                    text-sm
+                                    font-bold
+                                    text-[#34322d]
+                                "
+                            >
                                 Available Stock *
-
                             </label>
 
 
@@ -1018,13 +1025,16 @@ export default function ProviderGearSection({
                                 placeholder="1"
                                 className="
                                     w-full
+                                    rounded-2xl
                                     border
-                                    rounded-xl
+                                    border-[#ddd7cb]
+                                    bg-[#faf9f6]
                                     px-4
                                     py-3
+                                    text-sm
                                     outline-none
-                                    focus:ring-2
-                                    focus:ring-blue-500
+                                    focus:border-[#dc7755]
+                                    focus:bg-white
                                 "
                             />
 
@@ -1035,15 +1045,16 @@ export default function ProviderGearSection({
 
                         <div>
 
-                            <label className="
-                                block
-                                text-sm
-                                font-semibold
-                                mb-2
-                            ">
-
+                            <label
+                                className="
+                                    mb-2
+                                    block
+                                    text-sm
+                                    font-bold
+                                    text-[#34322d]
+                                "
+                            >
                                 Condition
-
                             </label>
 
 
@@ -1056,14 +1067,16 @@ export default function ProviderGearSection({
                                 }
                                 className="
                                     w-full
+                                    rounded-2xl
                                     border
-                                    rounded-xl
+                                    border-[#ddd7cb]
+                                    bg-[#faf9f6]
                                     px-4
                                     py-3
-                                    bg-white
+                                    text-sm
                                     outline-none
-                                    focus:ring-2
-                                    focus:ring-blue-500
+                                    focus:border-[#dc7755]
+                                    focus:bg-white
                                 "
                             >
 
@@ -1096,15 +1109,16 @@ export default function ProviderGearSection({
 
                         <div>
 
-                            <label className="
-                                block
-                                text-sm
-                                font-semibold
-                                mb-2
-                            ">
-
+                            <label
+                                className="
+                                    mb-2
+                                    block
+                                    text-sm
+                                    font-bold
+                                    text-[#34322d]
+                                "
+                            >
                                 Category *
-
                             </label>
 
 
@@ -1115,31 +1129,23 @@ export default function ProviderGearSection({
                                         e.target.value
                                     )
                                 }
-                                disabled={
-                                    categoriesLoading
-                                }
                                 className="
                                     w-full
+                                    rounded-2xl
                                     border
-                                    rounded-xl
+                                    border-[#ddd7cb]
+                                    bg-[#faf9f6]
                                     px-4
                                     py-3
-                                    bg-white
+                                    text-sm
                                     outline-none
-                                    focus:ring-2
-                                    focus:ring-blue-500
-                                    disabled:bg-gray-100
-                                    disabled:text-gray-500
+                                    focus:border-[#dc7755]
+                                    focus:bg-white
                                 "
                             >
 
                                 <option value="">
-
-                                    {categoriesLoading
-                                        ? "Loading categories..."
-                                        : "Select category"
-                                    }
-
+                                    Select category
                                 </option>
 
 
@@ -1154,11 +1160,9 @@ export default function ProviderGearSection({
                                                 category.id
                                             }
                                         >
-
                                             {
                                                 category.name
                                             }
-
                                         </option>
 
                                     )
@@ -1173,15 +1177,16 @@ export default function ProviderGearSection({
 
                         <div>
 
-                            <label className="
-                                block
-                                text-sm
-                                font-semibold
-                                mb-2
-                            ">
-
+                            <label
+                                className="
+                                    mb-2
+                                    block
+                                    text-sm
+                                    font-bold
+                                    text-[#34322d]
+                                "
+                            >
                                 Location
-
                             </label>
 
 
@@ -1195,13 +1200,16 @@ export default function ProviderGearSection({
                                 placeholder="e.g. Dhaka"
                                 className="
                                     w-full
+                                    rounded-2xl
                                     border
-                                    rounded-xl
+                                    border-[#ddd7cb]
+                                    bg-[#faf9f6]
                                     px-4
                                     py-3
+                                    text-sm
                                     outline-none
-                                    focus:ring-2
-                                    focus:ring-blue-500
+                                    focus:border-[#dc7755]
+                                    focus:bg-white
                                 "
                             />
 
@@ -1210,19 +1218,22 @@ export default function ProviderGearSection({
 
                         {/* DESCRIPTION */}
 
-                        <div className="
-                            md:col-span-2
-                        ">
+                        <div
+                            className="
+                                md:col-span-2
+                            "
+                        >
 
-                            <label className="
-                                block
-                                text-sm
-                                font-semibold
-                                mb-2
-                            ">
-
+                            <label
+                                className="
+                                    mb-2
+                                    block
+                                    text-sm
+                                    font-bold
+                                    text-[#34322d]
+                                "
+                            >
                                 Description
-
                             </label>
 
 
@@ -1237,14 +1248,17 @@ export default function ProviderGearSection({
                                 placeholder="Describe your gear..."
                                 className="
                                     w-full
+                                    resize-none
+                                    rounded-2xl
                                     border
-                                    rounded-xl
+                                    border-[#ddd7cb]
+                                    bg-[#faf9f6]
                                     px-4
                                     py-3
+                                    text-sm
                                     outline-none
-                                    focus:ring-2
-                                    focus:ring-blue-500
-                                    resize-none
+                                    focus:border-[#dc7755]
+                                    focus:bg-white
                                 "
                             />
 
@@ -1253,41 +1267,39 @@ export default function ProviderGearSection({
                     </div>
 
 
-                    {/* ACTIONS */}
+                    {/* BUTTONS */}
 
-                    <div className="
-                        flex
-                        flex-wrap
-                        gap-3
-                        mt-6
-                    ">
+                    <div
+                        className="
+                            mt-7
+                            flex
+                            flex-wrap
+                            gap-3
+                        "
+                    >
 
                         <button
                             type="button"
-                            disabled={
-                                pending ||
-                                categoriesLoading
-                            }
+                            disabled={pending}
                             onClick={
                                 handleAddGear
                             }
                             className="
-                                bg-blue-600
-                                hover:bg-blue-700
-                                text-white
+                                rounded-full
+                                bg-[#dc7755]
                                 px-6
                                 py-3
-                                rounded-xl
-                                font-semibold
+                                text-sm
+                                font-bold
+                                text-white
+                                transition
+                                hover:bg-[#cf6c4b]
                                 disabled:opacity-50
                             "
                         >
-
                             {pending
                                 ? "Adding..."
-                                : "Add Gear"
-                            }
-
+                                : "Add Gear"}
                         </button>
 
 
@@ -1298,19 +1310,20 @@ export default function ProviderGearSection({
                                 closeAddForm
                             }
                             className="
-                                bg-gray-200
-                                hover:bg-gray-300
-                                text-gray-800
+                                rounded-full
+                                border
+                                border-[#ddd7cb]
+                                bg-[#f3f0e8]
                                 px-6
                                 py-3
-                                rounded-xl
-                                font-semibold
-                                disabled:opacity-50
+                                text-sm
+                                font-bold
+                                text-[#4e4a42]
+                                transition
+                                hover:bg-[#e9e5db]
                             "
                         >
-
                             Cancel
-
                         </button>
 
                     </div>
@@ -1320,422 +1333,653 @@ export default function ProviderGearSection({
             )}
 
 
-            {/* GEAR LIST */}
+            {/* EMPTY STATE */}
 
             {gear.length === 0 ? (
 
-                <div className="
-                    bg-white
-                    border
-                    rounded-2xl
-                    p-10
-                    text-center
-                ">
+                <div
+                    className="
+                        rounded-[28px]
+                        border
+                        border-[#e5ded2]
+                        bg-white
+                        px-6
+                        py-16
+                        text-center
+                        shadow-sm
+                    "
+                >
 
-                    <div className="
-                        text-4xl
-                        mb-3
-                    ">
-
+                    <div
+                        className="
+                            mx-auto
+                            mb-5
+                            flex
+                            h-14
+                            w-14
+                            items-center
+                            justify-center
+                            rounded-2xl
+                            bg-[#eeeadf]
+                            text-2xl
+                        "
+                    >
                         📦
-
                     </div>
 
 
-                    <h3 className="
-                        text-xl
-                        font-bold
-                    ">
-
+                    <h3
+                        className="
+                            text-xl
+                            font-black
+                        "
+                    >
                         No gear yet
-
                     </h3>
 
 
-                    <p className="
-                        text-gray-600
-                        mt-2
-                    ">
-
+                    <p
+                        className="
+                            mx-auto
+                            mt-2
+                            max-w-md
+                            text-sm
+                            leading-6
+                            text-[#888277]
+                        "
+                    >
                         Add your first gear item
                         to start receiving rental
                         requests.
-
                     </p>
+
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setShowAddForm(true)
+                        }
+                        className="
+                            mt-6
+                            rounded-full
+                            bg-[#dc7755]
+                            px-5
+                            py-2.5
+                            text-sm
+                            font-bold
+                            text-white
+                            transition
+                            hover:bg-[#cf6c4b]
+                        "
+                    >
+                        + Add your first gear
+                    </button>
 
                 </div>
 
             ) : (
 
-                <div className="
-                    grid
-                    grid-cols-1
-                    md:grid-cols-2
-                    gap-6
-                ">
+                <div
+                    className="
+                        grid
+                        grid-cols-1
+                        gap-5
+                        lg:grid-cols-2
+                    "
+                >
 
                     {gear.map((item) => (
 
                         <div
                             key={item.id}
                             className="
-                                bg-white
+                                overflow-hidden
+                                rounded-[28px]
                                 border
-                                rounded-2xl
-                                p-6
+                                border-[#e5ded2]
+                                bg-white
                                 shadow-sm
+                                transition
+                                hover:-translate-y-0.5
+                                hover:shadow-md
                             "
                         >
 
-                            <div className="
-                                flex
-                                justify-between
-                                items-start
-                                gap-4
-                            ">
+                            <div
+                                className="
+                                    p-6
+                                    md:p-7
+                                "
+                            >
 
-                                <div>
+                                {/* CARD HEADER */}
 
-                                    <h3 className="
-                                        text-xl
-                                        font-bold
-                                    ">
-
-                                        {item.name}
-
-                                    </h3>
-
-
-                                    {item.brand && (
-
-                                        <p className="
-                                            text-gray-500
-                                            mt-1
-                                        ">
-
-                                            {item.brand}
-
-                                        </p>
-
-                                    )}
-
-                                </div>
-
-
-                                <span className="
-                                    px-3
-                                    py-1
-                                    rounded-full
-                                    bg-green-100
-                                    text-green-700
-                                    text-sm
-                                    font-semibold
-                                ">
-
-                                    {item.status ||
-                                        "AVAILABLE"}
-
-                                </span>
-
-                            </div>
-
-
-                            {editingId === item.id ? (
-
-                                <div className="
-                                    mt-5
-                                    space-y-4
-                                ">
-
-                                    <div>
-
-                                        <label className="
-                                            block
-                                            text-sm
-                                            font-semibold
-                                            mb-1
-                                        ">
-
-                                            Price per day
-
-                                        </label>
-
-
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={editPrice}
-                                            onChange={(e) =>
-                                                setEditPrice(
-                                                    e.target.value
-                                                )
-                                            }
-                                            className="
-                                                w-full
-                                                border
-                                                rounded-lg
-                                                px-3
-                                                py-2
-                                            "
-                                        />
-
-                                    </div>
-
-
-                                    <div>
-
-                                        <label className="
-                                            block
-                                            text-sm
-                                            font-semibold
-                                            mb-1
-                                        ">
-
-                                            Available stock
-
-                                        </label>
-
-
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={editStock}
-                                            onChange={(e) =>
-                                                setEditStock(
-                                                    e.target.value
-                                                )
-                                            }
-                                            className="
-                                                w-full
-                                                border
-                                                rounded-lg
-                                                px-3
-                                                py-2
-                                            "
-                                        />
-
-                                    </div>
-
-
-                                    <div>
-
-                                        <label className="
-                                            block
-                                            text-sm
-                                            font-semibold
-                                            mb-1
-                                        ">
-
-                                            Description
-
-                                        </label>
-
-
-                                        <textarea
-                                            value={
-                                                editDescription
-                                            }
-                                            onChange={(e) =>
-                                                setEditDescription(
-                                                    e.target.value
-                                                )
-                                            }
-                                            rows={4}
-                                            className="
-                                                w-full
-                                                border
-                                                rounded-lg
-                                                px-3
-                                                py-2
-                                            "
-                                        />
-
-                                    </div>
-
-
-                                    <div className="
+                                <div
+                                    className="
                                         flex
-                                        gap-3
-                                    ">
+                                        items-start
+                                        justify-between
+                                        gap-4
+                                    "
+                                >
 
-                                        <button
-                                            type="button"
-                                            disabled={pending}
-                                            onClick={() =>
-                                                saveEdit(
-                                                    item.id
-                                                )
-                                            }
+                                    <div
+                                        className="
+                                            min-w-0
+                                        "
+                                    >
+
+                                        <h3
                                             className="
-                                                bg-blue-600
-                                                text-white
-                                                px-5
-                                                py-2
-                                                rounded-lg
-                                                font-semibold
-                                                disabled:opacity-50
+                                                text-xl
+                                                font-black
+                                                leading-tight
+                                                tracking-tight
                                             "
                                         >
-
-                                            {pending
-                                                ? "Saving..."
-                                                : "Save Changes"
-                                            }
-
-                                        </button>
+                                            {item.name}
+                                        </h3>
 
 
-                                        <button
-                                            type="button"
-                                            disabled={pending}
-                                            onClick={
-                                                cancelEdit
-                                            }
-                                            className="
-                                                bg-gray-200
-                                                text-gray-800
-                                                px-5
-                                                py-2
-                                                rounded-lg
-                                                font-semibold
-                                            "
-                                        >
+                                        {item.brand && (
 
-                                            Cancel
+                                            <p
+                                                className="
+                                                    mt-1.5
+                                                    text-sm
+                                                    font-medium
+                                                    text-[#918b80]
+                                                "
+                                            >
+                                                {item.brand}
+                                            </p>
 
-                                        </button>
+                                        )}
 
                                     </div>
 
+
+                                    <span
+                                        className={`
+                                            shrink-0
+                                            rounded-full
+                                            px-3
+                                            py-1.5
+                                            text-xs
+                                            font-bold
+                                            ${
+                                                item.status ===
+                                                "UNAVAILABLE"
+                                                    ? "bg-[#f6ddd5] text-[#b85d40]"
+                                                    : "bg-[#e2eadc] text-[#617258]"
+                                            }
+                                        `}
+                                    >
+                                        {item.status ||
+                                            "AVAILABLE"}
+                                    </span>
+
                                 </div>
 
-                            ) : (
 
-                                <>
+                                {editingId === item.id ? (
 
-                                    <div className="
-                                        mt-5
-                                        space-y-2
-                                        text-gray-700
-                                    ">
+                                    /* EDIT */
 
-                                        <p>
+                                    <div
+                                        className="
+                                            mt-6
+                                            rounded-2xl
+                                            bg-[#f8f5ed]
+                                            p-5
+                                        "
+                                    >
 
-                                            <strong>
-                                                Price/day:
-                                            </strong>{" "}
-
-                                            ${item.pricePerDay}
-
+                                        <p
+                                            className="
+                                                mb-5
+                                                text-xs
+                                                font-bold
+                                                uppercase
+                                                tracking-[0.15em]
+                                                text-[#dc7755]
+                                            "
+                                        >
+                                            Edit listing
                                         </p>
 
 
-                                        <p>
+                                        <div
+                                            className="
+                                                space-y-4
+                                            "
+                                        >
 
-                                            <strong>
-                                                Stock:
-                                            </strong>{" "}
+                                            <div>
 
-                                            {item.availableStock}
+                                                <label
+                                                    className="
+                                                        mb-2
+                                                        block
+                                                        text-sm
+                                                        font-bold
+                                                    "
+                                                >
+                                                    Price per day
+                                                </label>
 
-                                            {" / "}
 
-                                            {item.stock}
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    value={
+                                                        editPrice
+                                                    }
+                                                    onChange={(
+                                                        e
+                                                    ) =>
+                                                        setEditPrice(
+                                                            e.target
+                                                                .value
+                                                        )
+                                                    }
+                                                    className="
+                                                        w-full
+                                                        rounded-xl
+                                                        border
+                                                        border-[#ddd7cb]
+                                                        bg-white
+                                                        px-4
+                                                        py-3
+                                                        outline-none
+                                                        focus:border-[#dc7755]
+                                                    "
+                                                />
 
-                                        </p>
+                                            </div>
+
+
+                                            <div>
+
+                                                <label
+                                                    className="
+                                                        mb-2
+                                                        block
+                                                        text-sm
+                                                        font-bold
+                                                    "
+                                                >
+                                                    Available stock
+                                                </label>
+
+
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    value={
+                                                        editStock
+                                                    }
+                                                    onChange={(
+                                                        e
+                                                    ) =>
+                                                        setEditStock(
+                                                            e.target
+                                                                .value
+                                                        )
+                                                    }
+                                                    className="
+                                                        w-full
+                                                        rounded-xl
+                                                        border
+                                                        border-[#ddd7cb]
+                                                        bg-white
+                                                        px-4
+                                                        py-3
+                                                        outline-none
+                                                        focus:border-[#dc7755]
+                                                    "
+                                                />
+
+                                            </div>
+
+
+                                            <div>
+
+                                                <label
+                                                    className="
+                                                        mb-2
+                                                        block
+                                                        text-sm
+                                                        font-bold
+                                                    "
+                                                >
+                                                    Description
+                                                </label>
+
+
+                                                <textarea
+                                                    value={
+                                                        editDescription
+                                                    }
+                                                    onChange={(
+                                                        e
+                                                    ) =>
+                                                        setEditDescription(
+                                                            e.target
+                                                                .value
+                                                        )
+                                                    }
+                                                    rows={4}
+                                                    className="
+                                                        w-full
+                                                        resize-none
+                                                        rounded-xl
+                                                        border
+                                                        border-[#ddd7cb]
+                                                        bg-white
+                                                        px-4
+                                                        py-3
+                                                        outline-none
+                                                        focus:border-[#dc7755]
+                                                    "
+                                                />
+
+                                            </div>
+
+
+                                            <div
+                                                className="
+                                                    flex
+                                                    flex-wrap
+                                                    gap-3
+                                                    pt-1
+                                                "
+                                            >
+
+                                                <button
+                                                    type="button"
+                                                    disabled={
+                                                        pending
+                                                    }
+                                                    onClick={() =>
+                                                        saveEdit(
+                                                            item.id
+                                                        )
+                                                    }
+                                                    className="
+                                                        rounded-full
+                                                        bg-[#dc7755]
+                                                        px-5
+                                                        py-2.5
+                                                        text-sm
+                                                        font-bold
+                                                        text-white
+                                                        transition
+                                                        hover:bg-[#cf6c4b]
+                                                        disabled:opacity-50
+                                                    "
+                                                >
+                                                    {pending
+                                                        ? "Saving..."
+                                                        : "Save Changes"}
+                                                </button>
+
+
+                                                <button
+                                                    type="button"
+                                                    disabled={
+                                                        pending
+                                                    }
+                                                    onClick={
+                                                        cancelEdit
+                                                    }
+                                                    className="
+                                                        rounded-full
+                                                        bg-[#e8e4dc]
+                                                        px-5
+                                                        py-2.5
+                                                        text-sm
+                                                        font-bold
+                                                        text-[#4e4a42]
+                                                        transition
+                                                        hover:bg-[#ddd8ce]
+                                                    "
+                                                >
+                                                    Cancel
+                                                </button>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                ) : (
+
+                                    /* NORMAL CARD */
+
+                                    <>
+
+                                        <div
+                                            className="
+                                                mt-6
+                                                grid
+                                                grid-cols-2
+                                                gap-4
+                                                border-y
+                                                border-[#eee9df]
+                                                py-5
+                                            "
+                                        >
+
+                                            <div>
+
+                                                <p
+                                                    className="
+                                                        text-xs
+                                                        font-medium
+                                                        uppercase
+                                                        tracking-wide
+                                                        text-[#9a9489]
+                                                    "
+                                                >
+                                                    Price / day
+                                                </p>
+
+
+                                                <p
+                                                    className="
+                                                        mt-1
+                                                        text-xl
+                                                        font-black
+                                                        text-[#dc7755]
+                                                    "
+                                                >
+                                                    $
+                                                    {
+                                                        item.pricePerDay ??
+                                                        "0"
+                                                    }
+                                                </p>
+
+                                            </div>
+
+
+                                            <div>
+
+                                                <p
+                                                    className="
+                                                        text-xs
+                                                        font-medium
+                                                        uppercase
+                                                        tracking-wide
+                                                        text-[#9a9489]
+                                                    "
+                                                >
+                                                    Stock
+                                                </p>
+
+
+                                                <p
+                                                    className="
+                                                        mt-1
+                                                        text-xl
+                                                        font-black
+                                                    "
+                                                >
+                                                    {
+                                                        item.availableStock ??
+                                                        0
+                                                    }
+
+                                                    <span
+                                                        className="
+                                                            ml-1
+                                                            text-sm
+                                                            font-medium
+                                                            text-[#999287]
+                                                        "
+                                                    >
+                                                        /
+                                                        {
+                                                            item.stock ??
+                                                            0
+                                                        }
+                                                    </span>
+
+                                                </p>
+
+                                            </div>
+
+                                        </div>
 
 
                                         {item.location && (
 
-                                            <p>
+                                            <div
+                                                className="
+                                                    mt-5
+                                                    flex
+                                                    items-center
+                                                    gap-2
+                                                    text-sm
+                                                    text-[#777267]
+                                                "
+                                            >
 
-                                                <strong>
-                                                    Location:
-                                                </strong>{" "}
+                                                <span
+                                                    className="
+                                                        flex
+                                                        h-8
+                                                        w-8
+                                                        items-center
+                                                        justify-center
+                                                        rounded-xl
+                                                        bg-[#eeeadf]
+                                                        text-xs
+                                                    "
+                                                >
+                                                    ●
+                                                </span>
 
-                                                {item.location}
 
-                                            </p>
+                                                <span>
+                                                    {
+                                                        item.location
+                                                    }
+                                                </span>
+
+                                            </div>
 
                                         )}
 
 
                                         {item.description && (
 
-                                            <p className="
-                                                text-gray-600
-                                                pt-2
-                                            ">
-
+                                            <p
+                                                className="
+                                                    mt-4
+                                                    line-clamp-3
+                                                    text-sm
+                                                    leading-6
+                                                    text-[#777267]
+                                                "
+                                            >
                                                 {
                                                     item.description
                                                 }
-
                                             </p>
 
                                         )}
 
-                                    </div>
 
-
-                                    <div className="
-                                        flex
-                                        gap-3
-                                        mt-6
-                                    ">
-
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                startEdit(
-                                                    item
-                                                )
-                                            }
+                                        <div
                                             className="
-                                                bg-blue-600
-                                                hover:bg-blue-700
-                                                text-white
-                                                px-5
-                                                py-2
-                                                rounded-lg
-                                                font-semibold
+                                                mt-6
+                                                flex
+                                                items-center
+                                                gap-3
                                             "
                                         >
 
-                                            Edit
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    startEdit(
+                                                        item
+                                                    )
+                                                }
+                                                className="
+                                                    rounded-full
+                                                    bg-[#24231f]
+                                                    px-5
+                                                    py-2.5
+                                                    text-sm
+                                                    font-bold
+                                                    text-white
+                                                    transition
+                                                    hover:bg-[#35332e]
+                                                "
+                                            >
+                                                Edit
+                                            </button>
 
-                                        </button>
 
+                                            <button
+                                                type="button"
+                                                disabled={
+                                                    pending
+                                                }
+                                                onClick={() =>
+                                                    deleteGear(
+                                                        item.id
+                                                    )
+                                                }
+                                                className="
+                                                    rounded-full
+                                                    border
+                                                    border-[#ead6cf]
+                                                    bg-[#fff7f4]
+                                                    px-5
+                                                    py-2.5
+                                                    text-sm
+                                                    font-bold
+                                                    text-[#b85d40]
+                                                    transition
+                                                    hover:bg-[#fbe9e3]
+                                                    disabled:opacity-50
+                                                "
+                                            >
+                                                Delete
+                                            </button>
 
-                                        <button
-                                            type="button"
-                                            disabled={pending}
-                                            onClick={() =>
-                                                deleteGear(
-                                                    item.id
-                                                )
-                                            }
-                                            className="
-                                                bg-red-600
-                                                hover:bg-red-700
-                                                text-white
-                                                px-5
-                                                py-2
-                                                rounded-lg
-                                                font-semibold
-                                                disabled:opacity-50
-                                            "
-                                        >
+                                        </div>
 
-                                            Delete
+                                    </>
 
-                                        </button>
+                                )}
 
-                                    </div>
-
-                                </>
-
-                            )}
+                            </div>
 
                         </div>
 
@@ -1748,5 +1992,4 @@ export default function ProviderGearSection({
         </section>
 
     );
-
 }
