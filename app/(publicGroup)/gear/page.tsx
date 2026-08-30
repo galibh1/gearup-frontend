@@ -4,7 +4,9 @@ import { ArrowLeft } from "lucide-react";
 import { getAllGear } from "../_actions/gear.actions";
 import GearBrowser from "../_components/GearBrowser";
 
+
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 
 type Gear = {
@@ -15,8 +17,12 @@ type Gear = {
 
 export default async function GearPage() {
 
+    const result = await getAllGear();
+
     const gears =
-        await getAllGear();
+        result.success
+            ? result.data
+            : [];
 
 
     return (
@@ -29,9 +35,7 @@ export default async function GearPage() {
             "
         >
 
-            {/* =====================================================
-                HEADER
-            ===================================================== */}
+            {/* HEADER */}
 
             <header
                 className="
@@ -59,7 +63,7 @@ export default async function GearPage() {
                     "
                 >
 
-                    {/* Logo */}
+                    {/* LOGO */}
 
                     <Link
                         href="/dashboard"
@@ -122,7 +126,7 @@ export default async function GearPage() {
                     </Link>
 
 
-                    {/* Navigation */}
+                    {/* NAVIGATION */}
 
                     <nav
                         className="
@@ -191,7 +195,7 @@ export default async function GearPage() {
                     </nav>
 
 
-                    {/* Account */}
+                    {/* ACCOUNT */}
 
                     <Link
                         href="/dashboard"
@@ -242,9 +246,7 @@ export default async function GearPage() {
             </header>
 
 
-            {/* =====================================================
-                MAIN
-            ===================================================== */}
+            {/* MAIN */}
 
             <section
                 className="
@@ -253,7 +255,7 @@ export default async function GearPage() {
                 "
             >
 
-                {/* Decorative background */}
+                {/* BACKGROUND DECORATION */}
 
                 <div
                     className="
@@ -298,9 +300,7 @@ export default async function GearPage() {
                     "
                 >
 
-                    {/* =================================================
-                        BACK BUTTON
-                    ================================================= */}
+                    {/* BACK */}
 
                     <div className="mb-8">
 
@@ -340,9 +340,7 @@ export default async function GearPage() {
                     </div>
 
 
-                    {/* =================================================
-                        INTRO
-                    ================================================= */}
+                    {/* INTRO */}
 
                     <div className="max-w-3xl">
 
@@ -406,9 +404,40 @@ export default async function GearPage() {
                     </div>
 
 
-                    {/* =================================================
-                        SEARCH + FILTERS + RESULTS
-                    ================================================= */}
+                    {/* API ERROR */}
+
+                    {!result.success && (
+
+                        <div
+                            className="
+                                mt-8
+                                rounded-2xl
+                                border
+                                border-[#d97757]/20
+                                bg-[#fffaf6]
+                                px-5
+                                py-4
+                                text-sm
+                                text-[#8f5038]
+                                shadow-sm
+                            "
+                        >
+
+                            <div className="font-semibold">
+                                Unable to load gear
+                            </div>
+
+                            <div className="mt-1 text-[#9d7869]">
+                                {result.message ||
+                                    "Please refresh the page and try again."}
+                            </div>
+
+                        </div>
+
+                    )}
+
+
+                    {/* BROWSER */}
 
                     <GearBrowser
                         gears={
@@ -421,9 +450,7 @@ export default async function GearPage() {
             </section>
 
 
-            {/* =====================================================
-                FOOTER
-            ===================================================== */}
+            {/* FOOTER */}
 
             <footer
                 className="
