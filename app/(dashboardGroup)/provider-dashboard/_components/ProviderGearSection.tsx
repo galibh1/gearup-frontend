@@ -26,17 +26,89 @@ type Category = {
 type GearItem = {
     id: string;
     name: string;
-    brand?: string;
+    slug?: string;
+
+    brand?: string | null;
+
     pricePerDay?: string | number;
     depositAmount?: string | number;
-    stock?: number;
-    availableStock?: number;
+
+    stock?: string | number;
+    availableStock?: string | number;
+
     condition?: string;
     status?: string;
-    location?: string;
+
+    location?: string | null;
     description?: string;
+
     imageUrls?: string[];
+
+    categoryId?: string;
+
+    category?: {
+        id?: string;
+        name?: string;
+    };
+
+    provider?: {
+        name?: string;
+        businessName?: string;
+    };
 };
+
+
+const CONDITIONS = [
+    {
+        value: "NEW",
+        label: "New",
+    },
+    {
+        value: "LIKE_NEW",
+        label: "Like New",
+    },
+    {
+        value: "GOOD",
+        label: "Good",
+    },
+    {
+        value: "FAIR",
+        label: "Fair",
+    },
+    {
+        value: "POOR",
+        label: "Poor",
+    },
+];
+
+
+function createSlug(value: string) {
+    return value
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+
+
+function getNumber(
+    value: string | number | undefined
+) {
+    const number = Number(value ?? 0);
+
+    return Number.isFinite(number)
+        ? number
+        : 0;
+}
+
+
+function getStatus(
+    availableStock: string | number | undefined
+) {
+    return getNumber(availableStock) > 0
+        ? "AVAILABLE"
+        : "UNAVAILABLE";
+}
 
 
 export default function ProviderGearSection({
@@ -46,7 +118,9 @@ export default function ProviderGearSection({
 }) {
 
     const [gear, setGear] =
-        useState<GearItem[]>(initialGear || []);
+        useState<GearItem[]>(
+            initialGear || []
+        );
 
     const [categories, setCategories] =
         useState<Category[]>([]);
@@ -61,56 +135,164 @@ export default function ProviderGearSection({
         useTransition();
 
 
-    // ADD FORM
-    const [name, setName] = useState("");
-    const [brand, setBrand] = useState("");
-    const [price, setPrice] = useState("");
-    const [depositAmount, setDepositAmount] = useState("");
-    const [stock, setStock] = useState("");
-    const [availableStock, setAvailableStock] = useState("");
-    const [condition, setCondition] = useState("GOOD");
-    const [location, setLocation] = useState("");
-    const [description, setDescription] = useState("");
-    const [categoryId, setCategoryId] = useState("");
+    // =========================================================
+    // ADD FORM STATE
+    // =========================================================
 
-    // IMAGE URLS
+    const [name, setName] =
+        useState("");
+
+    const [brand, setBrand] =
+        useState("");
+
+    const [price, setPrice] =
+        useState("");
+
+    const [depositAmount, setDepositAmount] =
+        useState("");
+
+    const [stock, setStock] =
+        useState("");
+
+    const [availableStock, setAvailableStock] =
+        useState("");
+
+    const [condition, setCondition] =
+        useState("GOOD");
+
+    const [categoryId, setCategoryId] =
+        useState("");
+
+    const [location, setLocation] =
+        useState("");
+
+    const [description, setDescription] =
+        useState("");
+
     const [imageUrls, setImageUrls] =
         useState<string[]>([""]);
 
 
-    // EDIT FORM
-    const [editPrice, setEditPrice] = useState("");
-    const [editStock, setEditStock] = useState("");
-    const [editDescription, setEditDescription] = useState("");
+    // =========================================================
+    // EDIT FORM STATE
+    // =========================================================
+
+    const [editName, setEditName] =
+        useState("");
+
+    const [editBrand, setEditBrand] =
+        useState("");
+
+    const [editPrice, setEditPrice] =
+        useState("");
+
+    const [editDeposit, setEditDeposit] =
+        useState("");
+
+    const [editTotalStock, setEditTotalStock] =
+        useState("");
+
+    const [editAvailableStock, setEditAvailableStock] =
+        useState("");
+
+    const [editCondition, setEditCondition] =
+        useState("GOOD");
+
+    const [editCategoryId, setEditCategoryId] =
+        useState("");
+
+    const [editLocation, setEditLocation] =
+        useState("");
+
+    const [editDescription, setEditDescription] =
+        useState("");
+
+    const [editImages, setEditImages] =
+        useState<string[]>([]);
 
 
+    // =========================================================
     // LOAD CATEGORIES
+    // =========================================================
+
     useEffect(() => {
 
         async function loadCategories() {
 
-            const result =
-                await fetchCategories();
+            try {
 
-            if (!result.success) {
+                const result =
+                    await fetchCategories();
+
+                if (!result.success) {
+
+                    toast.error(
+                        result.message ||
+                        "Failed to load categories"
+                    );
+
+                    return;
+                }
+
+                setCategories(
+                    (result.data || []) as Category[]
+                );
+
+            } catch (error) {
 
                 toast.error(
-                    result.message ||
                     "Failed to load categories"
                 );
 
-                return;
             }
 
-            setCategories(
-                (result.data || []) as Category[]
-            );
         }
 
         loadCategories();
 
     }, []);
 
+
+    // =========================================================
+    // REFRESH GEAR
+    // =========================================================
+
+    async function refreshGear() {
+
+        try {
+
+            const refreshed =
+                await fetchProviderGear();
+
+            if (!refreshed.success) {
+
+                toast.error(
+                    refreshed.message ||
+                    "Failed to refresh gear"
+                );
+
+                return;
+
+            }
+
+            setGear(
+                (refreshed.data || []) as GearItem[]
+            );
+
+        } catch (error) {
+
+            toast.error(
+                "Failed to refresh gear"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // RESET ADD FORM
+    // =========================================================
 
     function resetAddForm() {
 
@@ -121,9 +303,9 @@ export default function ProviderGearSection({
         setStock("");
         setAvailableStock("");
         setCondition("GOOD");
+        setCategoryId("");
         setLocation("");
         setDescription("");
-        setCategoryId("");
         setImageUrls([""]);
 
     }
@@ -137,434 +319,9 @@ export default function ProviderGearSection({
     }
 
 
-    // ADD GEAR
-    function handleAddGear() {
-
-        const parsedPrice = Number(price);
-
-        const parsedDeposit =
-            Number(depositAmount);
-
-        const parsedStock =
-            Number(stock);
-
-        const parsedAvailableStock =
-            Number(availableStock);
-
-
-        if (!name.trim()) {
-
-            toast.error(
-                "Gear name is required"
-            );
-
-            return;
-        }
-
-
-        if (
-            Number.isNaN(parsedPrice) ||
-            parsedPrice < 0
-        ) {
-
-            toast.error(
-                "Enter a valid daily price"
-            );
-
-            return;
-        }
-
-
-        if (
-            Number.isNaN(parsedDeposit) ||
-            parsedDeposit < 0
-        ) {
-
-            toast.error(
-                "Enter a valid deposit amount"
-            );
-
-            return;
-        }
-
-
-        if (
-            Number.isNaN(parsedStock) ||
-            parsedStock < 0
-        ) {
-
-            toast.error(
-                "Enter a valid stock quantity"
-            );
-
-            return;
-        }
-
-
-        if (
-            Number.isNaN(parsedAvailableStock) ||
-            parsedAvailableStock < 0 ||
-            parsedAvailableStock > parsedStock
-        ) {
-
-            toast.error(
-                "Available stock cannot exceed total stock"
-            );
-
-            return;
-        }
-
-
-        if (!categoryId) {
-
-            toast.error(
-                "Please select a category"
-            );
-
-            return;
-        }
-
-
-        startTransition(async () => {
-
-            const slug =
-                name
-                    .trim()
-                    .toLowerCase()
-                    .replace(
-                        /[^a-z0-9]+/g,
-                        "-"
-                    )
-                    .replace(
-                        /^-|-$/g,
-                        ""
-                    );
-
-
-            /*
-             * Convert the entered image URLs into
-             * a clean array.
-             *
-             * Empty fields are removed.
-             */
-            const cleanedImageUrls =
-                imageUrls
-                    .map((url) => url.trim())
-                    .filter(Boolean);
-
-
-            const result =
-                await addProviderGear({
-
-                    name: name.trim(),
-
-                    slug,
-
-                    description:
-                        description.trim(),
-
-                    brand:
-                        brand.trim(),
-
-                    pricePerDay:
-                        parsedPrice,
-
-                    depositAmount:
-                        parsedDeposit,
-
-                    stock:
-                        parsedStock,
-
-                    availableStock:
-                        parsedAvailableStock,
-
-                    condition,
-
-                    status:
-                        "AVAILABLE",
-
-                    /*
-                     * THIS IS THE IMPORTANT FIX.
-                     */
-                    imageUrls:
-                        cleanedImageUrls,
-
-                    specifications: {},
-
-                    location:
-                        location.trim(),
-
-                    isFeatured:
-                        false,
-
-                    categoryId,
-
-                });
-
-
-            if (!result.success) {
-
-                toast.error(
-                    result.message ||
-                    "Failed to create gear"
-                );
-
-                return;
-            }
-
-
-            toast.success(
-                result.message ||
-                "Gear created successfully"
-            );
-
-
-            const refreshed =
-                await fetchProviderGear();
-
-
-            if (refreshed.success) {
-
-                setGear(
-                    (refreshed.data || []) as GearItem[]
-                );
-
-            } else if (result.data) {
-
-                setGear(
-                    (current) => [
-                        result.data as GearItem,
-                        ...current,
-                    ]
-                );
-
-            }
-
-
-            closeAddForm();
-
-        });
-
-    }
-
-
-    // START EDIT
-    function startEdit(
-        item: GearItem
-    ) {
-
-        setEditingId(item.id);
-
-        setEditPrice(
-            String(
-                item.pricePerDay ?? ""
-            )
-        );
-
-        setEditStock(
-            String(
-                item.availableStock ?? ""
-            )
-        );
-
-        setEditDescription(
-            item.description ?? ""
-        );
-
-    }
-
-
-    // CANCEL EDIT
-    function cancelEdit() {
-
-        setEditingId(null);
-
-        setEditPrice("");
-
-        setEditStock("");
-
-        setEditDescription("");
-
-    }
-
-
-    // SAVE EDIT
-    function saveEdit(
-        id: string
-    ) {
-
-        const parsedPrice =
-            Number(editPrice);
-
-        const parsedStock =
-            Number(editStock);
-
-
-        if (
-            !editPrice ||
-            Number.isNaN(parsedPrice) ||
-            parsedPrice < 0
-        ) {
-
-            toast.error(
-                "Enter a valid daily price"
-            );
-
-            return;
-        }
-
-
-        if (
-            !editStock ||
-            Number.isNaN(parsedStock) ||
-            parsedStock < 0
-        ) {
-
-            toast.error(
-                "Enter a valid available stock"
-            );
-
-            return;
-        }
-
-
-        startTransition(async () => {
-
-            const result =
-                await editProviderGear(
-                    id,
-                    {
-                        pricePerDay:
-                            parsedPrice,
-
-                        availableStock:
-                            parsedStock,
-
-                        description:
-                            editDescription,
-                    }
-                );
-
-
-            if (!result.success) {
-
-                toast.error(
-                    result.message ||
-                    "Failed to update gear"
-                );
-
-                return;
-            }
-
-
-            toast.success(
-                result.message ||
-                "Gear updated successfully"
-            );
-
-
-            setGear(
-                (current) =>
-                    current.map(
-                        (item) =>
-                            item.id === id
-                                ? {
-                                    ...item,
-
-                                    pricePerDay:
-                                        parsedPrice,
-
-                                    availableStock:
-                                        parsedStock,
-
-                                    description:
-                                        editDescription,
-                                }
-                                : item
-                    )
-            );
-
-
-            cancelEdit();
-
-        });
-
-    }
-
-
-    // DELETE
-    function deleteGear(
-        id: string
-    ) {
-
-        const confirmed =
-            window.confirm(
-                "Are you sure you want to delete this gear?"
-            );
-
-
-        if (!confirmed) {
-            return;
-        }
-
-
-        startTransition(async () => {
-
-            const result =
-                await removeProviderGear(id);
-
-
-            if (!result.success) {
-
-                toast.error(
-                    result.message ||
-                    "Failed to delete gear"
-                );
-
-                return;
-            }
-
-
-            toast.success(
-                result.message ||
-                "Gear deleted successfully"
-            );
-
-
-            setGear(
-                (current) =>
-                    current.filter(
-                        (item) =>
-                            item.id !== id
-                    )
-            );
-
-        });
-
-    }
-
-
-    /*
-     * IMAGE URL HELPERS
-     */
-
-    function updateImageUrl(
-        index: number,
-        value: string
-    ) {
-
-        setImageUrls(
-            (current) =>
-                current.map(
-                    (url, i) =>
-                        i === index
-                            ? value
-                            : url
-                )
-        );
-
-    }
-
+    // =========================================================
+    // ADD IMAGE INPUT
+    // =========================================================
 
     function addImageField() {
 
@@ -585,15 +342,69 @@ export default function ProviderGearSection({
         setImageUrls(
             (current) => {
 
-                const updated =
+                const next =
                     current.filter(
                         (_, i) =>
                             i !== index
                     );
 
-                return updated.length
-                    ? updated
+                return next.length > 0
+                    ? next
                     : [""];
+            }
+        );
+
+    }
+
+
+    function updateImageField(
+        index: number,
+        value: string
+    ) {
+
+        setImageUrls(
+            (current) =>
+                current.map(
+                    (item, i) =>
+                        i === index
+                            ? value
+                            : item
+                )
+        );
+
+    }
+
+
+    // =========================================================
+    // EDIT IMAGE INPUT
+    // =========================================================
+
+    function addEditImageField() {
+
+        setEditImages(
+            (current) => [
+                ...current,
+                "",
+            ]
+        );
+
+    }
+
+
+    function removeEditImageField(
+        index: number
+    ) {
+
+        setEditImages(
+            (current) => {
+
+                const next =
+                    current.filter(
+                        (_, i) =>
+                            i !== index
+                    );
+
+                return next;
 
             }
         );
@@ -601,35 +412,723 @@ export default function ProviderGearSection({
     }
 
 
+    function updateEditImageField(
+        index: number,
+        value: string
+    ) {
+
+        setEditImages(
+            (current) =>
+                current.map(
+                    (item, i) =>
+                        i === index
+                            ? value
+                            : item
+                )
+        );
+
+    }
+
+
+    // =========================================================
+    // ADD GEAR
+    // =========================================================
+
+    function handleAddGear() {
+
+        const parsedPrice =
+            Number(price);
+
+        const parsedDeposit =
+            Number(depositAmount);
+
+        const parsedStock =
+            Number(stock);
+
+        const parsedAvailableStock =
+            Number(availableStock);
+
+
+        if (!name.trim()) {
+
+            toast.error(
+                "Gear name is required"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !Number.isFinite(parsedPrice) ||
+            parsedPrice < 0
+        ) {
+
+            toast.error(
+                "Enter a valid daily price"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !Number.isFinite(parsedDeposit) ||
+            parsedDeposit < 0
+        ) {
+
+            toast.error(
+                "Enter a valid deposit amount"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !Number.isInteger(parsedStock) ||
+            parsedStock < 1
+        ) {
+
+            toast.error(
+                "Total stock must be at least 1"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !Number.isInteger(
+                parsedAvailableStock
+            ) ||
+            parsedAvailableStock < 0
+        ) {
+
+            toast.error(
+                "Enter a valid available stock"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            parsedAvailableStock >
+            parsedStock
+        ) {
+
+            toast.error(
+                "Available stock cannot exceed total stock"
+            );
+
+            return;
+
+        }
+
+
+        if (!categoryId) {
+
+            toast.error(
+                "Please select a category"
+            );
+
+            return;
+
+        }
+
+
+        const cleanedImages =
+            imageUrls
+                .map(
+                    (url) =>
+                        url.trim()
+                )
+                .filter(
+                    Boolean
+                );
+
+
+        const slug =
+            createSlug(name);
+
+
+        const data = {
+
+            name:
+                name.trim(),
+
+            slug,
+
+            description:
+                description.trim(),
+
+            brand:
+                brand.trim(),
+
+            pricePerDay:
+                parsedPrice,
+
+            depositAmount:
+                parsedDeposit,
+
+            stock:
+                parsedStock,
+
+            availableStock:
+                parsedAvailableStock,
+
+            condition,
+
+            status:
+                getStatus(
+                    parsedAvailableStock
+                ),
+
+            imageUrls:
+                cleanedImages,
+
+            specifications:
+                {},
+
+            location:
+                location.trim(),
+
+            isFeatured:
+                false,
+
+            categoryId,
+
+        };
+
+
+        startTransition(
+            async () => {
+
+                const result =
+                    await addProviderGear(
+                        data
+                    );
+
+
+                if (!result.success) {
+
+                    toast.error(
+                        result.message ||
+                        "Failed to create gear"
+                    );
+
+                    return;
+
+                }
+
+
+                toast.success(
+                    result.message ||
+                    "Gear created successfully"
+                );
+
+
+                if (result.data) {
+
+                    setGear(
+                        (current) => [
+                            result.data as GearItem,
+                            ...current,
+                        ]
+                    );
+
+                } else {
+
+                    await refreshGear();
+
+                }
+
+
+                closeAddForm();
+
+            }
+        );
+
+    }
+
+
+    // =========================================================
+    // START EDIT
+    // =========================================================
+
+    function startEdit(
+        item: GearItem
+    ) {
+
+        setEditingId(item.id);
+
+        setEditName(
+            item.name || ""
+        );
+
+        setEditBrand(
+            item.brand || ""
+        );
+
+        setEditPrice(
+            String(
+                item.pricePerDay ?? ""
+            )
+        );
+
+        setEditDeposit(
+            String(
+                item.depositAmount ?? ""
+            )
+        );
+
+        setEditTotalStock(
+            String(
+                item.stock ?? ""
+            )
+        );
+
+        setEditAvailableStock(
+            String(
+                item.availableStock ?? ""
+            )
+        );
+
+        setEditCondition(
+            item.condition ||
+            "GOOD"
+        );
+
+        setEditCategoryId(
+            item.categoryId ||
+            item.category?.id ||
+            ""
+        );
+
+        setEditLocation(
+            item.location || ""
+        );
+
+        setEditDescription(
+            item.description || ""
+        );
+
+        setEditImages(
+            item.imageUrls &&
+            item.imageUrls.length > 0
+                ? [...item.imageUrls]
+                : []
+        );
+
+    }
+
+
+    // =========================================================
+    // CANCEL EDIT
+    // =========================================================
+
+    function cancelEdit() {
+
+        setEditingId(null);
+
+        setEditName("");
+        setEditBrand("");
+        setEditPrice("");
+        setEditDeposit("");
+        setEditTotalStock("");
+        setEditAvailableStock("");
+        setEditCondition("GOOD");
+        setEditCategoryId("");
+        setEditLocation("");
+        setEditDescription("");
+        setEditImages([]);
+
+    }
+
+
+    // =========================================================
+    // SAVE EDIT
+    // =========================================================
+
+    function handleSaveEdit(
+        id: string
+    ) {
+
+        const parsedPrice =
+            Number(editPrice);
+
+        const parsedDeposit =
+            Number(editDeposit);
+
+        const parsedStock =
+            Number(editTotalStock);
+
+        const parsedAvailableStock =
+            Number(editAvailableStock);
+
+
+        if (!editName.trim()) {
+
+            toast.error(
+                "Gear name is required"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !Number.isFinite(parsedPrice) ||
+            parsedPrice < 0
+        ) {
+
+            toast.error(
+                "Enter a valid daily price"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !Number.isFinite(parsedDeposit) ||
+            parsedDeposit < 0
+        ) {
+
+            toast.error(
+                "Enter a valid deposit amount"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !Number.isInteger(parsedStock) ||
+            parsedStock < 1
+        ) {
+
+            toast.error(
+                "Total stock must be at least 1"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !Number.isInteger(
+                parsedAvailableStock
+            ) ||
+            parsedAvailableStock < 0
+        ) {
+
+            toast.error(
+                "Available stock must be 0 or greater"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            parsedAvailableStock >
+            parsedStock
+        ) {
+
+            toast.error(
+                "Available stock cannot exceed total stock"
+            );
+
+            return;
+
+        }
+
+
+        const cleanedImages =
+            editImages
+                .map(
+                    (url) =>
+                        url.trim()
+                )
+                .filter(
+                    Boolean
+                );
+
+
+        const data = {
+
+            name:
+                editName.trim(),
+
+            brand:
+                editBrand.trim()
+                    ? editBrand.trim()
+                    : null,
+
+            pricePerDay:
+                parsedPrice,
+
+            depositAmount:
+                parsedDeposit,
+
+            stock:
+                parsedStock,
+
+            availableStock:
+                parsedAvailableStock,
+
+            condition:
+                editCondition,
+
+            status:
+                getStatus(
+                    parsedAvailableStock
+                ),
+
+            imageUrls:
+                cleanedImages,
+
+            location:
+                editLocation.trim()
+                    ? editLocation.trim()
+                    : null,
+
+            categoryId:
+                editCategoryId || undefined,
+
+            description:
+                editDescription.trim(),
+
+        };
+
+
+        startTransition(
+            async () => {
+
+                const result =
+                    await editProviderGear(
+                        id,
+                        data
+                    );
+
+
+                if (!result.success) {
+
+                    toast.error(
+                        result.message ||
+                        "Failed to update gear"
+                    );
+
+                    return;
+
+                }
+
+
+                toast.success(
+                    result.message ||
+                    "Gear updated successfully"
+                );
+
+
+                if (result.data) {
+
+                    setGear(
+                        (current) =>
+                            current.map(
+                                (item) =>
+                                    item.id === id
+                                        ? {
+                                            ...item,
+                                            ...(result.data as GearItem),
+                                        }
+                                        : item
+                            )
+                    );
+
+                } else {
+
+                    await refreshGear();
+
+                }
+
+
+                cancelEdit();
+
+            }
+        );
+
+    }
+
+
+    // =========================================================
+    // DELETE GEAR
+    // =========================================================
+
+    function handleDelete(
+        id: string
+    ) {
+
+        const confirmed =
+            window.confirm(
+                "Are you sure you want to delete this gear?"
+            );
+
+
+        if (!confirmed) {
+
+            return;
+
+        }
+
+
+        startTransition(
+            async () => {
+
+                const result =
+                    await removeProviderGear(
+                        id
+                    );
+
+
+                if (!result.success) {
+
+                    toast.error(
+                        result.message ||
+                        "Failed to delete gear"
+                    );
+
+                    return;
+
+                }
+
+
+                toast.success(
+                    result.message ||
+                    "Gear deleted successfully"
+                );
+
+
+                setGear(
+                    (current) =>
+                        current.filter(
+                            (item) =>
+                                item.id !== id
+                        )
+                );
+
+            }
+        );
+
+    }
+
+
+    // =========================================================
+    // AVAILABLE STOCK QUICK VALIDATION
+    // =========================================================
+
+    const addStockNumber =
+        Number(stock);
+
+    const addAvailableNumber =
+        Number(availableStock);
+
+    const editStockNumber =
+        Number(editTotalStock);
+
+    const editAvailableNumber =
+        Number(editAvailableStock);
+
+
     return (
 
         <section
             id="my-gear"
             className="
-                mt-16
-                scroll-mt-28
+                w-full
+                px-4
+                py-8
+                sm:px-6
+                lg:px-8
             "
         >
 
-            {/* HEADER */}
-
             <div
                 className="
-                    mb-7
-                    flex
-                    flex-col
-                    gap-5
-                    sm:flex-row
-                    sm:items-end
-                    sm:justify-between
+                    mx-auto
+                    max-w-7xl
                 "
             >
 
-                <div>
+                {/* =================================================
+                    HEADER
+                ================================================= */}
+
+                <div
+                    className="
+                        mb-8
+                        flex
+                        flex-col
+                        gap-4
+                        sm:flex-row
+                        sm:items-center
+                        sm:justify-between
+                    "
+                >
+
+                    <div>
+
+                        <p
+                            className="
+                                text-sm
+                                font-semibold
+                                uppercase
+                                tracking-[0.18em]
+                                text-[#d97757]
+                            "
+                        >
+                            Provider Inventory
+                        </p>
+
+                        <h2
+                            className="
+                                mt-1
+                                text-3xl
+                                font-extrabold
+                                tracking-[-0.03em]
+                                text-[#211f1a]
+                            "
+                        >
+                            My Gear
+                        </h2>
+
+                        <p
+                            className="
+                                mt-2
+                                text-sm
+                                text-[#827b6d]
+                            "
+                        >
+                            Manage your gear listings,
+                            prices, stock and images.
+                        </p>
+
+                    </div>
+
 
                     <div
                         className="
-                            mb-3
                             flex
                             items-center
                             gap-3
@@ -638,865 +1137,955 @@ export default function ProviderGearSection({
 
                         <span
                             className="
-                                h-px
-                                w-6
-                                bg-[#dc7755]
-                            "
-                        />
-
-                        <p
-                            className="
-                                text-xs
-                                font-bold
-                                uppercase
-                                tracking-[0.2em]
-                                text-[#dc7755]
-                            "
-                        >
-                            Inventory
-                        </p>
-
-                    </div>
-
-
-                    <h2
-                        className="
-                            text-3xl
-                            font-black
-                            tracking-tight
-                            md:text-4xl
-                        "
-                    >
-                        My Gear
-                    </h2>
-
-
-                    <p
-                        className="
-                            mt-2
-                            text-[#777267]
-                        "
-                    >
-                        Manage the equipment you
-                        offer for rental.
-                    </p>
-
-                </div>
-
-
-                <div
-                    className="
-                        flex
-                        items-center
-                        gap-3
-                    "
-                >
-
-                    <div
-                        className="
-                            rounded-full
-                            border
-                            border-[#d9e3d2]
-                            bg-[#e7eee2]
-                            px-4
-                            py-2
-                            text-sm
-                            font-bold
-                            text-[#617258]
-                        "
-                    >
-                        {gear.length}{" "}
-                        {gear.length === 1
-                            ? "item"
-                            : "items"}
-                    </div>
-
-
-                    <button
-                        type="button"
-                        onClick={() =>
-                            setShowAddForm(
-                                !showAddForm
-                            )
-                        }
-                        className="
-                            rounded-full
-                            bg-[#dc7755]
-                            px-5
-                            py-2.5
-                            text-sm
-                            font-bold
-                            text-white
-                            shadow-sm
-                            transition
-                            hover:-translate-y-0.5
-                            hover:bg-[#cf6c4b]
-                        "
-                    >
-                        {showAddForm
-                            ? "Close"
-                            : "+ Add Gear"}
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            {/* ADD FORM */}
-
-            {showAddForm && (
-
-                <div
-                    className="
-                        mb-8
-                        rounded-[28px]
-                        border
-                        border-[#e5ded2]
-                        bg-white
-                        p-6
-                        shadow-sm
-                        md:p-8
-                    "
-                >
-
-                    <div className="mb-7">
-
-                        <p
-                            className="
-                                text-xs
-                                font-bold
-                                uppercase
-                                tracking-[0.18em]
-                                text-[#dc7755]
-                            "
-                        >
-                            New listing
-                        </p>
-
-
-                        <h3
-                            className="
-                                mt-2
-                                text-2xl
-                                font-black
-                            "
-                        >
-                            Add New Gear
-                        </h3>
-
-
-                        <p
-                            className="
-                                mt-1
+                                rounded-full
+                                border
+                                border-[#d8dfd0]
+                                bg-[#edf2e9]
+                                px-5
+                                py-3
                                 text-sm
-                                text-[#777267]
+                                font-bold
+                                text-[#63755a]
                             "
                         >
-                            Add equipment to your
-                            rental inventory.
-                        </p>
+                            {gear.length} Items
+                        </span>
+
+
+                        <button
+                            type="button"
+                            onClick={() => {
+
+                                if (
+                                    showAddForm
+                                ) {
+
+                                    closeAddForm();
+
+                                } else {
+
+                                    setShowAddForm(
+                                        true
+                                    );
+
+                                    setEditingId(
+                                        null
+                                    );
+
+                                }
+
+                            }}
+                            className="
+                                rounded-full
+                                bg-[#d97757]
+                                px-6
+                                py-3
+                                text-sm
+                                font-bold
+                                text-white
+                                shadow-sm
+                                transition
+                                hover:bg-[#c76547]
+                                disabled:cursor-not-allowed
+                                disabled:opacity-60
+                            "
+                            disabled={pending}
+                        >
+                            {showAddForm
+                                ? "Cancel"
+                                : "+ Add Gear"}
+                        </button>
 
                     </div>
 
+                </div>
+
+
+                {/* =================================================
+                    ADD GEAR FORM
+                ================================================= */}
+
+                {showAddForm && (
 
                     <div
                         className="
-                            grid
-                            grid-cols-1
-                            gap-5
-                            md:grid-cols-2
+                            mb-8
+                            rounded-[24px]
+                            border
+                            border-[#e2ddd2]
+                            bg-[#faf7f0]
+                            p-6
+                            shadow-sm
+                            sm:p-8
                         "
                     >
-
-                        {/* NAME */}
-
-                        <div>
-
-                            <label
-                                className="
-                                    mb-2
-                                    block
-                                    text-sm
-                                    font-bold
-                                    text-[#34322d]
-                                "
-                            >
-                                Gear Name *
-                            </label>
-
-
-                            <input
-                                value={name}
-                                onChange={(e) =>
-                                    setName(
-                                        e.target.value
-                                    )
-                                }
-                                placeholder="e.g. Canon EOS R5"
-                                className="
-                                    w-full
-                                    rounded-2xl
-                                    border
-                                    border-[#ddd7cb]
-                                    bg-[#faf9f6]
-                                    px-4
-                                    py-3
-                                    text-sm
-                                    outline-none
-                                    transition
-                                    focus:border-[#dc7755]
-                                    focus:bg-white
-                                "
-                            />
-
-                        </div>
-
-
-                        {/* BRAND */}
-
-                        <div>
-
-                            <label
-                                className="
-                                    mb-2
-                                    block
-                                    text-sm
-                                    font-bold
-                                    text-[#34322d]
-                                "
-                            >
-                                Brand
-                            </label>
-
-
-                            <input
-                                value={brand}
-                                onChange={(e) =>
-                                    setBrand(
-                                        e.target.value
-                                    )
-                                }
-                                placeholder="e.g. Canon"
-                                className="
-                                    w-full
-                                    rounded-2xl
-                                    border
-                                    border-[#ddd7cb]
-                                    bg-[#faf9f6]
-                                    px-4
-                                    py-3
-                                    text-sm
-                                    outline-none
-                                    transition
-                                    focus:border-[#dc7755]
-                                    focus:bg-white
-                                "
-                            />
-
-                        </div>
-
-
-                        {/* PRICE */}
-
-                        <div>
-
-                            <label
-                                className="
-                                    mb-2
-                                    block
-                                    text-sm
-                                    font-bold
-                                    text-[#34322d]
-                                "
-                            >
-                                Price Per Day *
-                            </label>
-
-
-                            <div
-                                className="
-                                    relative
-                                "
-                            >
-
-                                <span
-                                    className="
-                                        absolute
-                                        left-4
-                                        top-1/2
-                                        -translate-y-1/2
-                                        text-sm
-                                        font-bold
-                                        text-[#8b8579]
-                                    "
-                                >
-                                    $
-                                </span>
-
-
-                                <input
-                                    type="number"
-                                    min="0"
-                                    value={price}
-                                    onChange={(e) =>
-                                        setPrice(
-                                            e.target.value
-                                        )
-                                    }
-                                    placeholder="0"
-                                    className="
-                                        w-full
-                                        rounded-2xl
-                                        border
-                                        border-[#ddd7cb]
-                                        bg-[#faf9f6]
-                                        py-3
-                                        pl-8
-                                        pr-4
-                                        text-sm
-                                        outline-none
-                                        focus:border-[#dc7755]
-                                        focus:bg-white
-                                    "
-                                />
-
-                            </div>
-
-                        </div>
-
-
-                        {/* DEPOSIT */}
-
-                        <div>
-
-                            <label
-                                className="
-                                    mb-2
-                                    block
-                                    text-sm
-                                    font-bold
-                                    text-[#34322d]
-                                "
-                            >
-                                Deposit Amount *
-                            </label>
-
-
-                            <div
-                                className="
-                                    relative
-                                "
-                            >
-
-                                <span
-                                    className="
-                                        absolute
-                                        left-4
-                                        top-1/2
-                                        -translate-y-1/2
-                                        text-sm
-                                        font-bold
-                                        text-[#8b8579]
-                                    "
-                                >
-                                    $
-                                </span>
-
-
-                                <input
-                                    type="number"
-                                    min="0"
-                                    value={depositAmount}
-                                    onChange={(e) =>
-                                        setDepositAmount(
-                                            e.target.value
-                                        )
-                                    }
-                                    placeholder="0"
-                                    className="
-                                        w-full
-                                        rounded-2xl
-                                        border
-                                        border-[#ddd7cb]
-                                        bg-[#faf9f6]
-                                        py-3
-                                        pl-8
-                                        pr-4
-                                        text-sm
-                                        outline-none
-                                        focus:border-[#dc7755]
-                                        focus:bg-white
-                                    "
-                                />
-
-                            </div>
-
-                        </div>
-
-
-                        {/* STOCK */}
-
-                        <div>
-
-                            <label
-                                className="
-                                    mb-2
-                                    block
-                                    text-sm
-                                    font-bold
-                                    text-[#34322d]
-                                "
-                            >
-                                Total Stock *
-                            </label>
-
-
-                            <input
-                                type="number"
-                                min="0"
-                                value={stock}
-                                onChange={(e) =>
-                                    setStock(
-                                        e.target.value
-                                    )
-                                }
-                                placeholder="1"
-                                className="
-                                    w-full
-                                    rounded-2xl
-                                    border
-                                    border-[#ddd7cb]
-                                    bg-[#faf9f6]
-                                    px-4
-                                    py-3
-                                    text-sm
-                                    outline-none
-                                    focus:border-[#dc7755]
-                                    focus:bg-white
-                                "
-                            />
-
-                        </div>
-
-
-                        {/* AVAILABLE */}
-
-                        <div>
-
-                            <label
-                                className="
-                                    mb-2
-                                    block
-                                    text-sm
-                                    font-bold
-                                    text-[#34322d]
-                                "
-                            >
-                                Available Stock *
-                            </label>
-
-
-                            <input
-                                type="number"
-                                min="0"
-                                value={availableStock}
-                                onChange={(e) =>
-                                    setAvailableStock(
-                                        e.target.value
-                                    )
-                                }
-                                placeholder="1"
-                                className="
-                                    w-full
-                                    rounded-2xl
-                                    border
-                                    border-[#ddd7cb]
-                                    bg-[#faf9f6]
-                                    px-4
-                                    py-3
-                                    text-sm
-                                    outline-none
-                                    focus:border-[#dc7755]
-                                    focus:bg-white
-                                "
-                            />
-
-                        </div>
-
-
-                        {/* CONDITION */}
-
-                        <div>
-
-                            <label
-                                className="
-                                    mb-2
-                                    block
-                                    text-sm
-                                    font-bold
-                                    text-[#34322d]
-                                "
-                            >
-                                Condition
-                            </label>
-
-
-                            <select
-                                value={condition}
-                                onChange={(e) =>
-                                    setCondition(
-                                        e.target.value
-                                    )
-                                }
-                                className="
-                                    w-full
-                                    rounded-2xl
-                                    border
-                                    border-[#ddd7cb]
-                                    bg-[#faf9f6]
-                                    px-4
-                                    py-3
-                                    text-sm
-                                    outline-none
-                                    focus:border-[#dc7755]
-                                    focus:bg-white
-                                "
-                            >
-
-                                <option value="NEW">
-                                    New
-                                </option>
-
-                                <option value="LIKE_NEW">
-                                    Like New
-                                </option>
-
-                                <option value="GOOD">
-                                    Good
-                                </option>
-
-                                <option value="FAIR">
-                                    Fair
-                                </option>
-
-                                <option value="USED">
-                                    Used
-                                </option>
-
-                            </select>
-
-                        </div>
-
-
-                        {/* CATEGORY */}
-
-                        <div>
-
-                            <label
-                                className="
-                                    mb-2
-                                    block
-                                    text-sm
-                                    font-bold
-                                    text-[#34322d]
-                                "
-                            >
-                                Category *
-                            </label>
-
-
-                            <select
-                                value={categoryId}
-                                onChange={(e) =>
-                                    setCategoryId(
-                                        e.target.value
-                                    )
-                                }
-                                className="
-                                    w-full
-                                    rounded-2xl
-                                    border
-                                    border-[#ddd7cb]
-                                    bg-[#faf9f6]
-                                    px-4
-                                    py-3
-                                    text-sm
-                                    outline-none
-                                    focus:border-[#dc7755]
-                                    focus:bg-white
-                                "
-                            >
-
-                                <option value="">
-                                    Select category
-                                </option>
-
-
-                                {categories.map(
-                                    (category) => (
-
-                                        <option
-                                            key={
-                                                category.id
-                                            }
-                                            value={
-                                                category.id
-                                            }
-                                        >
-                                            {
-                                                category.name
-                                            }
-                                        </option>
-
-                                    )
-                                )}
-
-                            </select>
-
-                        </div>
-
-
-                        {/* LOCATION */}
-
-                        <div>
-
-                            <label
-                                className="
-                                    mb-2
-                                    block
-                                    text-sm
-                                    font-bold
-                                    text-[#34322d]
-                                "
-                            >
-                                Location
-                            </label>
-
-
-                            <input
-                                value={location}
-                                onChange={(e) =>
-                                    setLocation(
-                                        e.target.value
-                                    )
-                                }
-                                placeholder="e.g. Dhaka"
-                                className="
-                                    w-full
-                                    rounded-2xl
-                                    border
-                                    border-[#ddd7cb]
-                                    bg-[#faf9f6]
-                                    px-4
-                                    py-3
-                                    text-sm
-                                    outline-none
-                                    focus:border-[#dc7755]
-                                    focus:bg-white
-                                "
-                            />
-
-                        </div>
-
-
-                        {/* IMAGE URLS */}
 
                         <div
                             className="
-                                md:col-span-2
-                                rounded-[24px]
-                                border
-                                border-[#e5ded2]
-                                bg-[#f8f5ed]
-                                p-5
-                                md:p-6
+                                mb-7
                             "
                         >
 
+                            <p
+                                className="
+                                    text-sm
+                                    font-bold
+                                    uppercase
+                                    tracking-[0.18em]
+                                    text-[#d97757]
+                                "
+                            >
+                                New Listing
+                            </p>
+
+                            <h3
+                                className="
+                                    mt-2
+                                    text-2xl
+                                    font-extrabold
+                                    text-[#211f1a]
+                                "
+                            >
+                                Add Gear
+                            </h3>
+
+                        </div>
+
+
+                        <div
+                            className="
+                                grid
+                                grid-cols-1
+                                gap-5
+                                md:grid-cols-2
+                            "
+                        >
+
+                            <div className="md:col-span-2">
+
+                                <label
+                                    className="
+                                        mb-2
+                                        block
+                                        text-sm
+                                        font-bold
+                                        text-[#211f1a]
+                                    "
+                                >
+                                    Gear Name *
+                                </label>
+
+                                <input
+                                    value={name}
+                                    onChange={(event) =>
+                                        setName(
+                                            event.target.value
+                                        )
+                                    }
+                                    placeholder="e.g. Trek Mountain Bike"
+                                    className="
+                                        w-full
+                                        rounded-xl
+                                        border
+                                        border-[#d9d3c7]
+                                        bg-white
+                                        px-4
+                                        py-3
+                                        outline-none
+                                        transition
+                                        focus:border-[#d97757]
+                                    "
+                                />
+
+                            </div>
+
+
+                            <div>
+
+                                <label
+                                    className="
+                                        mb-2
+                                        block
+                                        text-sm
+                                        font-bold
+                                        text-[#211f1a]
+                                    "
+                                >
+                                    Brand
+                                </label>
+
+                                <input
+                                    value={brand}
+                                    onChange={(event) =>
+                                        setBrand(
+                                            event.target.value
+                                        )
+                                    }
+                                    placeholder="e.g. Trek"
+                                    className="
+                                        w-full
+                                        rounded-xl
+                                        border
+                                        border-[#d9d3c7]
+                                        bg-white
+                                        px-4
+                                        py-3
+                                        outline-none
+                                        focus:border-[#d97757]
+                                    "
+                                />
+
+                            </div>
+
+
+                            <div>
+
+                                <label
+                                    className="
+                                        mb-2
+                                        block
+                                        text-sm
+                                        font-bold
+                                        text-[#211f1a]
+                                    "
+                                >
+                                    Category *
+                                </label>
+
+                                <select
+                                    value={categoryId}
+                                    onChange={(event) =>
+                                        setCategoryId(
+                                            event.target.value
+                                        )
+                                    }
+                                    className="
+                                        w-full
+                                        rounded-xl
+                                        border
+                                        border-[#d9d3c7]
+                                        bg-white
+                                        px-4
+                                        py-3
+                                        outline-none
+                                        focus:border-[#d97757]
+                                    "
+                                >
+
+                                    <option value="">
+                                        Select category
+                                    </option>
+
+                                    {categories.map(
+                                        (category) => (
+                                            <option
+                                                key={
+                                                    category.id
+                                                }
+                                                value={
+                                                    category.id
+                                                }
+                                            >
+                                                {category.name}
+                                            </option>
+                                        )
+                                    )}
+
+                                </select>
+
+                            </div>
+
+
+                            <div>
+
+                                <label
+                                    className="
+                                        mb-2
+                                        block
+                                        text-sm
+                                        font-bold
+                                        text-[#211f1a]
+                                    "
+                                >
+                                    Price Per Day *
+                                </label>
+
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={price}
+                                    onChange={(event) =>
+                                        setPrice(
+                                            event.target.value
+                                        )
+                                    }
+                                    className="
+                                        w-full
+                                        rounded-xl
+                                        border
+                                        border-[#d9d3c7]
+                                        bg-white
+                                        px-4
+                                        py-3
+                                        outline-none
+                                        focus:border-[#d97757]
+                                    "
+                                />
+
+                            </div>
+
+
+                            <div>
+
+                                <label
+                                    className="
+                                        mb-2
+                                        block
+                                        text-sm
+                                        font-bold
+                                        text-[#211f1a]
+                                    "
+                                >
+                                    Deposit Amount *
+                                </label>
+
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={depositAmount}
+                                    onChange={(event) =>
+                                        setDepositAmount(
+                                            event.target.value
+                                        )
+                                    }
+                                    className="
+                                        w-full
+                                        rounded-xl
+                                        border
+                                        border-[#d9d3c7]
+                                        bg-white
+                                        px-4
+                                        py-3
+                                        outline-none
+                                        focus:border-[#d97757]
+                                    "
+                                />
+
+                            </div>
+
+
+                            <div>
+
+                                <label
+                                    className="
+                                        mb-2
+                                        block
+                                        text-sm
+                                        font-bold
+                                        text-[#211f1a]
+                                    "
+                                >
+                                    Total Stock *
+                                </label>
+
+                                <input
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    value={stock}
+                                    onChange={(event) =>
+                                        setStock(
+                                            event.target.value
+                                        )
+                                    }
+                                    className="
+                                        w-full
+                                        rounded-xl
+                                        border
+                                        border-[#d9d3c7]
+                                        bg-white
+                                        px-4
+                                        py-3
+                                        outline-none
+                                        focus:border-[#d97757]
+                                    "
+                                />
+
+                            </div>
+
+
+                            <div>
+
+                                <label
+                                    className="
+                                        mb-2
+                                        block
+                                        text-sm
+                                        font-bold
+                                        text-[#211f1a]
+                                    "
+                                >
+                                    Available Stock *
+                                </label>
+
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    value={availableStock}
+                                    onChange={(event) =>
+                                        setAvailableStock(
+                                            event.target.value
+                                        )
+                                    }
+                                    className={`
+                                        w-full
+                                        rounded-xl
+                                        border
+                                        bg-white
+                                        px-4
+                                        py-3
+                                        outline-none
+                                        ${
+                                            Number.isFinite(
+                                                addStockNumber
+                                            ) &&
+                                            Number.isFinite(
+                                                addAvailableNumber
+                                            ) &&
+                                            addAvailableNumber >
+                                                addStockNumber
+                                                ? "border-red-400"
+                                                : "border-[#d9d3c7]"
+                                        }
+                                    `}
+                                />
+
+                                {Number.isFinite(
+                                    addStockNumber
+                                ) &&
+                                    Number.isFinite(
+                                        addAvailableNumber
+                                    ) &&
+                                    addAvailableNumber >
+                                        addStockNumber && (
+
+                                        <p
+                                            className="
+                                                mt-1
+                                                text-xs
+                                                font-semibold
+                                                text-red-600
+                                            "
+                                        >
+                                            Available stock cannot
+                                            exceed total stock.
+                                        </p>
+
+                                    )}
+
+                            </div>
+
+
+                            <div>
+
+                                <label
+                                    className="
+                                        mb-2
+                                        block
+                                        text-sm
+                                        font-bold
+                                        text-[#211f1a]
+                                    "
+                                >
+                                    Condition
+                                </label>
+
+                                <select
+                                    value={condition}
+                                    onChange={(event) =>
+                                        setCondition(
+                                            event.target.value
+                                        )
+                                    }
+                                    className="
+                                        w-full
+                                        rounded-xl
+                                        border
+                                        border-[#d9d3c7]
+                                        bg-white
+                                        px-4
+                                        py-3
+                                        outline-none
+                                        focus:border-[#d97757]
+                                    "
+                                >
+
+                                    {CONDITIONS.map(
+                                        (item) => (
+                                            <option
+                                                key={
+                                                    item.value
+                                                }
+                                                value={
+                                                    item.value
+                                                }
+                                            >
+                                                {item.label}
+                                            </option>
+                                        )
+                                    )}
+
+                                </select>
+
+                            </div>
+
+
+                            <div>
+
+                                <label
+                                    className="
+                                        mb-2
+                                        block
+                                        text-sm
+                                        font-bold
+                                        text-[#211f1a]
+                                    "
+                                >
+                                    Location
+                                </label>
+
+                                <input
+                                    value={location}
+                                    onChange={(event) =>
+                                        setLocation(
+                                            event.target.value
+                                        )
+                                    }
+                                    placeholder="Dhaka, Bangladesh"
+                                    className="
+                                        w-full
+                                        rounded-xl
+                                        border
+                                        border-[#d9d3c7]
+                                        bg-white
+                                        px-4
+                                        py-3
+                                        outline-none
+                                        focus:border-[#d97757]
+                                    "
+                                />
+
+                            </div>
+
+
+                            <div className="md:col-span-2">
+
+                                <label
+                                    className="
+                                        mb-2
+                                        block
+                                        text-sm
+                                        font-bold
+                                        text-[#211f1a]
+                                    "
+                                >
+                                    Description
+                                </label>
+
+                                <textarea
+                                    value={description}
+                                    onChange={(event) =>
+                                        setDescription(
+                                            event.target.value
+                                        )
+                                    }
+                                    rows={4}
+                                    placeholder="Describe the gear..."
+                                    className="
+                                        w-full
+                                        resize-none
+                                        rounded-xl
+                                        border
+                                        border-[#d9d3c7]
+                                        bg-white
+                                        px-4
+                                        py-3
+                                        outline-none
+                                        focus:border-[#d97757]
+                                    "
+                                />
+
+                            </div>
+
+
+                            {/* ADD IMAGES */}
+
                             <div
                                 className="
-                                    mb-5
-                                    flex
-                                    items-start
-                                    gap-3
+                                    md:col-span-2
                                 "
                             >
 
                                 <div
                                     className="
+                                        mb-3
                                         flex
-                                        h-10
-                                        w-10
-                                        shrink-0
                                         items-center
-                                        justify-center
-                                        rounded-xl
-                                        bg-white
-                                        text-lg
+                                        justify-between
                                     "
                                 >
-                                    🖼️
-                                </div>
 
-
-                                <div>
-
-                                    <h4
+                                    <label
                                         className="
                                             text-sm
-                                            font-black
-                                            text-[#34322d]
+                                            font-bold
+                                            text-[#211f1a]
                                         "
                                     >
-                                        Gear Images
-                                    </h4>
+                                        Images
+                                    </label>
 
-                                    <p
+                                    <button
+                                        type="button"
+                                        onClick={
+                                            addImageField
+                                        }
                                         className="
-                                            mt-1
-                                            text-xs
-                                            leading-5
-                                            text-[#918b80]
+                                            text-sm
+                                            font-bold
+                                            text-[#d97757]
+                                            hover:underline
                                         "
                                     >
-                                        Add one or more
-                                        direct image URLs
-                                        for this gear.
-                                    </p>
+                                        + Add Image
+                                    </button>
 
                                 </div>
 
-                            </div>
 
+                                <div
+                                    className="
+                                        space-y-3
+                                    "
+                                >
 
-                            <div className="space-y-4">
-
-                                {imageUrls.map(
-                                    (url, index) => (
-
-                                        <div
-                                            key={index}
-                                            className="
-                                                flex
-                                                flex-col
-                                                gap-2
-                                            "
-                                        >
+                                    {imageUrls.map(
+                                        (
+                                            url,
+                                            index
+                                        ) => (
 
                                             <div
+                                                key={
+                                                    index
+                                                }
                                                 className="
                                                     flex
-                                                    items-center
-                                                    justify-between
-                                                    gap-3
+                                                    gap-2
                                                 "
                                             >
 
-                                                <label
+                                                <input
+                                                    value={
+                                                        url
+                                                    }
+                                                    onChange={(
+                                                        event
+                                                    ) =>
+                                                        updateImageField(
+                                                            index,
+                                                            event
+                                                                .target
+                                                                .value
+                                                        )
+                                                    }
+                                                    placeholder="https://example.com/image.jpg"
                                                     className="
-                                                        text-xs
+                                                        min-w-0
+                                                        flex-1
+                                                        rounded-xl
+                                                        border
+                                                        border-[#d9d3c7]
+                                                        bg-white
+                                                        px-4
+                                                        py-3
+                                                        outline-none
+                                                        focus:border-[#d97757]
+                                                    "
+                                                />
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        removeImageField(
+                                                            index
+                                                        )
+                                                    }
+                                                    className="
+                                                        rounded-xl
+                                                        border
+                                                        border-[#efd3ca]
+                                                        px-4
                                                         font-bold
-                                                        uppercase
-                                                        tracking-[0.12em]
-                                                        text-[#918b80]
+                                                        text-[#bd5f3f]
                                                     "
                                                 >
-                                                    Image{" "}
-                                                    {index + 1}
-                                                </label>
-
-
-                                                {imageUrls.length >
-                                                    1 && (
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            removeImageField(
-                                                                index
-                                                            )
-                                                        }
-                                                        className="
-                                                            text-xs
-                                                            font-bold
-                                                            text-[#b85d40]
-                                                            hover:underline
-                                                        "
-                                                    >
-                                                        Remove
-                                                    </button>
-
-                                                )}
+                                                    Remove
+                                                </button>
 
                                             </div>
 
+                                        )
+                                    )}
 
-                                            <input
-                                                type="url"
-                                                value={url}
-                                                onChange={(e) =>
-                                                    updateImageUrl(
-                                                        index,
-                                                        e.target.value
-                                                    )
-                                                }
-                                                placeholder="https://example.com/your-gear-image.jpg"
-                                                className="
-                                                    w-full
-                                                    rounded-2xl
-                                                    border
-                                                    border-[#ddd7cb]
-                                                    bg-white
-                                                    px-4
-                                                    py-3
-                                                    text-sm
-                                                    outline-none
-                                                    transition
-                                                    focus:border-[#dc7755]
-                                                    focus:ring-2
-                                                    focus:ring-[#dc7755]/10
-                                                "
-                                            />
+                                </div>
+
+                                <p
+                                    className="
+                                        mt-2
+                                        text-xs
+                                        text-[#827b6d]
+                                    "
+                                >
+                                    Paste direct public image
+                                    URLs. You can add multiple
+                                    images.
+                                </p>
+
+                            </div>
+
+                        </div>
 
 
-                                            {url.trim() && (
+                        <div
+                            className="
+                                mt-7
+                                flex
+                                gap-3
+                            "
+                        >
+
+                            <button
+                                type="button"
+                                onClick={
+                                    handleAddGear
+                                }
+                                disabled={
+                                    pending
+                                }
+                                className="
+                                    rounded-xl
+                                    bg-[#211f1a]
+                                    px-6
+                                    py-3
+                                    font-bold
+                                    text-white
+                                    transition
+                                    hover:bg-[#d97757]
+                                    disabled:cursor-not-allowed
+                                    disabled:opacity-60
+                                "
+                            >
+                                {pending
+                                    ? "Saving..."
+                                    : "Create Gear"}
+                            </button>
+
+
+                            <button
+                                type="button"
+                                onClick={
+                                    closeAddForm
+                                }
+                                className="
+                                    rounded-xl
+                                    bg-[#e8e3da]
+                                    px-6
+                                    py-3
+                                    font-bold
+                                    text-[#211f1a]
+                                "
+                            >
+                                Cancel
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                )}
+
+
+                {/* =================================================
+                    EMPTY STATE
+                ================================================= */}
+
+                {gear.length === 0 &&
+                    !showAddForm && (
+
+                        <div
+                            className="
+                                rounded-[24px]
+                                border
+                                border-dashed
+                                border-[#d9d3c7]
+                                bg-white
+                                px-6
+                                py-16
+                                text-center
+                            "
+                        >
+
+                            <h3
+                                className="
+                                    text-xl
+                                    font-extrabold
+                                    text-[#211f1a]
+                                "
+                            >
+                                No gear listed yet
+                            </h3>
+
+                            <p
+                                className="
+                                    mt-2
+                                    text-sm
+                                    text-[#827b6d]
+                                "
+                            >
+                                Add your first gear item
+                                to start accepting rentals.
+                            </p>
+
+                        </div>
+
+                    )}
+
+
+                {/* =================================================
+                    GEAR GRID
+                ================================================= */}
+
+                {gear.length > 0 && (
+
+                    <div
+                        className="
+                            grid
+                            grid-cols-1
+                            gap-6
+                            lg:grid-cols-2
+                        "
+                    >
+
+                        {gear.map(
+                            (item) => {
+
+                                const isEditing =
+                                    editingId ===
+                                    item.id;
+
+
+                                const currentImages =
+                                    item.imageUrls || [];
+
+
+                                const available =
+                                    getNumber(
+                                        item.availableStock
+                                    );
+
+                                const total =
+                                    getNumber(
+                                        item.stock
+                                    );
+
+
+                                const isAvailable =
+                                    available > 0;
+
+
+                                return (
+
+                                    <article
+                                        key={
+                                            item.id
+                                        }
+                                        className="
+                                            overflow-hidden
+                                            rounded-[24px]
+                                            border
+                                            border-[#e2ddd2]
+                                            bg-white
+                                            shadow-[0_5px_20px_rgba(33,31,26,0.08)]
+                                        "
+                                    >
+
+                                        {/* IMAGE */}
+
+                                        <div
+                                            className="
+                                                relative
+                                                h-64
+                                                w-full
+                                                overflow-hidden
+                                                bg-[#eeeade]
+                                            "
+                                        >
+
+                                            {currentImages[0] ? (
+
+                                                <img
+                                                    src={
+                                                        currentImages[0]
+                                                    }
+                                                    alt={
+                                                        item.name
+                                                    }
+                                                    className="
+                                                        h-full
+                                                        w-full
+                                                        object-cover
+                                                    "
+                                                />
+
+                                            ) : (
 
                                                 <div
                                                     className="
-                                                        mt-1
-                                                        overflow-hidden
-                                                        rounded-2xl
-                                                        border
-                                                        border-[#e5ded2]
-                                                        bg-white
+                                                        flex
+                                                        h-full
+                                                        items-center
+                                                        justify-center
+                                                        px-6
+                                                        text-center
                                                     "
                                                 >
 
-                                                    <div
-                                                        className="
-                                                            aspect-[16/7]
-                                                            bg-[#eeeadf]
-                                                        "
-                                                    >
+                                                    <div>
 
-                                                        <img
-                                                            src={url}
-                                                            alt={`Preview of gear image ${index + 1}`}
+                                                        <p
                                                             className="
-                                                                h-full
-                                                                w-full
-                                                                object-cover
+                                                                text-lg
+                                                                font-bold
+                                                                text-[#827b6d]
                                                             "
-                                                            onError={(
-                                                                e
-                                                            ) => {
+                                                        >
+                                                            No image
+                                                        </p>
 
-                                                                e.currentTarget.style.display =
-                                                                    "none";
-
-                                                            }}
-                                                        />
+                                                        <p
+                                                            className="
+                                                                mt-1
+                                                                text-sm
+                                                                text-[#9b9488]
+                                                            "
+                                                        >
+                                                            Add an image
+                                                            URL below.
+                                                        </p>
 
                                                     </div>
 
@@ -1506,823 +2095,1097 @@ export default function ProviderGearSection({
 
                                         </div>
 
-                                    )
-                                )}
 
-                            </div>
-
-
-                            <button
-                                type="button"
-                                onClick={
-                                    addImageField
-                                }
-                                className="
-                                    mt-5
-                                    rounded-full
-                                    border
-                                    border-[#ddd7cb]
-                                    bg-white
-                                    px-5
-                                    py-2.5
-                                    text-sm
-                                    font-bold
-                                    text-[#4e4a42]
-                                    transition
-                                    hover:border-[#dc7755]
-                                    hover:text-[#dc7755]
-                                "
-                            >
-                                + Add another image
-                            </button>
-
-
-                            <p
-                                className="
-                                    mt-3
-                                    text-xs
-                                    leading-5
-                                    text-[#918b80]
-                                "
-                            >
-                                Example: https://images.example.com/backpack.jpg
-                            </p>
-
-                        </div>
-
-
-                        {/* DESCRIPTION */}
-
-                        <div
-                            className="
-                                md:col-span-2
-                            "
-                        >
-
-                            <label
-                                className="
-                                    mb-2
-                                    block
-                                    text-sm
-                                    font-bold
-                                    text-[#34322d]
-                                "
-                            >
-                                Description
-                            </label>
-
-
-                            <textarea
-                                value={description}
-                                onChange={(e) =>
-                                    setDescription(
-                                        e.target.value
-                                    )
-                                }
-                                rows={4}
-                                placeholder="Describe your gear..."
-                                className="
-                                    w-full
-                                    resize-none
-                                    rounded-2xl
-                                    border
-                                    border-[#ddd7cb]
-                                    bg-[#faf9f6]
-                                    px-4
-                                    py-3
-                                    text-sm
-                                    outline-none
-                                    focus:border-[#dc7755]
-                                    focus:bg-white
-                                "
-                            />
-
-                        </div>
-
-                    </div>
-
-
-                    {/* BUTTONS */}
-
-                    <div
-                        className="
-                            mt-7
-                            flex
-                            flex-wrap
-                            gap-3
-                        "
-                    >
-
-                        <button
-                            type="button"
-                            disabled={pending}
-                            onClick={
-                                handleAddGear
-                            }
-                            className="
-                                rounded-full
-                                bg-[#dc7755]
-                                px-6
-                                py-3
-                                text-sm
-                                font-bold
-                                text-white
-                                transition
-                                hover:bg-[#cf6c4b]
-                                disabled:opacity-50
-                            "
-                        >
-                            {pending
-                                ? "Adding..."
-                                : "Add Gear"}
-                        </button>
-
-
-                        <button
-                            type="button"
-                            disabled={pending}
-                            onClick={
-                                closeAddForm
-                            }
-                            className="
-                                rounded-full
-                                border
-                                border-[#ddd7cb]
-                                bg-[#f3f0e8]
-                                px-6
-                                py-3
-                                text-sm
-                                font-bold
-                                text-[#4e4a42]
-                                transition
-                                hover:bg-[#e9e5db]
-                            "
-                        >
-                            Cancel
-                        </button>
-
-                    </div>
-
-                </div>
-
-            )}
-
-
-            {/* EMPTY STATE */}
-
-            {gear.length === 0 ? (
-
-                <div
-                    className="
-                        rounded-[28px]
-                        border
-                        border-[#e5ded2]
-                        bg-white
-                        px-6
-                        py-16
-                        text-center
-                        shadow-sm
-                    "
-                >
-
-                    <div
-                        className="
-                            mx-auto
-                            mb-5
-                            flex
-                            h-14
-                            w-14
-                            items-center
-                            justify-center
-                            rounded-2xl
-                            bg-[#eeeadf]
-                            text-2xl
-                        "
-                    >
-                        📦
-                    </div>
-
-
-                    <h3
-                        className="
-                            text-xl
-                            font-black
-                        "
-                    >
-                        No gear yet
-                    </h3>
-
-
-                    <p
-                        className="
-                            mx-auto
-                            mt-2
-                            max-w-md
-                            text-sm
-                            leading-6
-                            text-[#888277]
-                        "
-                    >
-                        Add your first gear item
-                        to start receiving rental
-                        requests.
-                    </p>
-
-
-                    <button
-                        type="button"
-                        onClick={() =>
-                            setShowAddForm(true)
-                        }
-                        className="
-                            mt-6
-                            rounded-full
-                            bg-[#dc7755]
-                            px-5
-                            py-2.5
-                            text-sm
-                            font-bold
-                            text-white
-                            transition
-                            hover:bg-[#cf6c4b]
-                        "
-                    >
-                        + Add your first gear
-                    </button>
-
-                </div>
-
-            ) : (
-
-                <div
-                    className="
-                        grid
-                        grid-cols-1
-                        gap-5
-                        lg:grid-cols-2
-                    "
-                >
-
-                    {gear.map((item) => (
-
-                        <div
-                            key={item.id}
-                            className="
-                                overflow-hidden
-                                rounded-[28px]
-                                border
-                                border-[#e5ded2]
-                                bg-white
-                                shadow-sm
-                                transition
-                                hover:-translate-y-0.5
-                                hover:shadow-md
-                            "
-                        >
-
-                            <div
-                                className="
-                                    p-6
-                                    md:p-7
-                                "
-                            >
-
-                                {/* CARD HEADER */}
-
-                                <div
-                                    className="
-                                        flex
-                                        items-start
-                                        justify-between
-                                        gap-4
-                                    "
-                                >
-
-                                    <div
-                                        className="
-                                            min-w-0
-                                        "
-                                    >
-
-                                        <h3
-                                            className="
-                                                text-xl
-                                                font-black
-                                                leading-tight
-                                                tracking-tight
-                                            "
-                                        >
-                                            {item.name}
-                                        </h3>
-
-
-                                        {item.brand && (
-
-                                            <p
-                                                className="
-                                                    mt-1.5
-                                                    text-sm
-                                                    font-medium
-                                                    text-[#918b80]
-                                                "
-                                            >
-                                                {item.brand}
-                                            </p>
-
-                                        )}
-
-                                    </div>
-
-
-                                    <span
-                                        className={`
-                                            shrink-0
-                                            rounded-full
-                                            px-3
-                                            py-1.5
-                                            text-xs
-                                            font-bold
-                                            ${
-                                                item.status ===
-                                                "UNAVAILABLE"
-                                                    ? "bg-[#f6ddd5] text-[#b85d40]"
-                                                    : "bg-[#e2eadc] text-[#617258]"
-                                            }
-                                        `}
-                                    >
-                                        {item.status ||
-                                            "AVAILABLE"}
-                                    </span>
-
-                                </div>
-
-
-                                {editingId === item.id ? (
-
-                                    /* EDIT */
-
-                                    <div
-                                        className="
-                                            mt-6
-                                            rounded-2xl
-                                            bg-[#f8f5ed]
-                                            p-5
-                                        "
-                                    >
-
-                                        <p
-                                            className="
-                                                mb-5
-                                                text-xs
-                                                font-bold
-                                                uppercase
-                                                tracking-[0.15em]
-                                                text-[#dc7755]
-                                            "
-                                        >
-                                            Edit listing
-                                        </p>
-
+                                        {/* CARD CONTENT */}
 
                                         <div
                                             className="
-                                                space-y-4
+                                                p-6
                                             "
                                         >
-
-                                            <div>
-
-                                                <label
-                                                    className="
-                                                        mb-2
-                                                        block
-                                                        text-sm
-                                                        font-bold
-                                                    "
-                                                >
-                                                    Price per day
-                                                </label>
-
-
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    value={
-                                                        editPrice
-                                                    }
-                                                    onChange={(
-                                                        e
-                                                    ) =>
-                                                        setEditPrice(
-                                                            e.target
-                                                                .value
-                                                        )
-                                                    }
-                                                    className="
-                                                        w-full
-                                                        rounded-xl
-                                                        border
-                                                        border-[#ddd7cb]
-                                                        bg-white
-                                                        px-4
-                                                        py-3
-                                                        outline-none
-                                                        focus:border-[#dc7755]
-                                                    "
-                                                />
-
-                                            </div>
-
-
-                                            <div>
-
-                                                <label
-                                                    className="
-                                                        mb-2
-                                                        block
-                                                        text-sm
-                                                        font-bold
-                                                    "
-                                                >
-                                                    Available stock
-                                                </label>
-
-
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    value={
-                                                        editStock
-                                                    }
-                                                    onChange={(
-                                                        e
-                                                    ) =>
-                                                        setEditStock(
-                                                            e.target
-                                                                .value
-                                                        )
-                                                    }
-                                                    className="
-                                                        w-full
-                                                        rounded-xl
-                                                        border
-                                                        border-[#ddd7cb]
-                                                        bg-white
-                                                        px-4
-                                                        py-3
-                                                        outline-none
-                                                        focus:border-[#dc7755]
-                                                    "
-                                                />
-
-                                            </div>
-
-
-                                            <div>
-
-                                                <label
-                                                    className="
-                                                        mb-2
-                                                        block
-                                                        text-sm
-                                                        font-bold
-                                                    "
-                                                >
-                                                    Description
-                                                </label>
-
-
-                                                <textarea
-                                                    value={
-                                                        editDescription
-                                                    }
-                                                    onChange={(
-                                                        e
-                                                    ) =>
-                                                        setEditDescription(
-                                                            e.target
-                                                                .value
-                                                        )
-                                                    }
-                                                    rows={4}
-                                                    className="
-                                                        w-full
-                                                        resize-none
-                                                        rounded-xl
-                                                        border
-                                                        border-[#ddd7cb]
-                                                        bg-white
-                                                        px-4
-                                                        py-3
-                                                        outline-none
-                                                        focus:border-[#dc7755]
-                                                    "
-                                                />
-
-                                            </div>
-
 
                                             <div
                                                 className="
                                                     flex
-                                                    flex-wrap
-                                                    gap-3
-                                                    pt-1
+                                                    items-start
+                                                    justify-between
+                                                    gap-4
                                                 "
                                             >
 
-                                                <button
-                                                    type="button"
-                                                    disabled={
-                                                        pending
-                                                    }
-                                                    onClick={() =>
-                                                        saveEdit(
-                                                            item.id
-                                                        )
-                                                    }
-                                                    className="
-                                                        rounded-full
-                                                        bg-[#dc7755]
-                                                        px-5
-                                                        py-2.5
-                                                        text-sm
-                                                        font-bold
-                                                        text-white
-                                                        transition
-                                                        hover:bg-[#cf6c4b]
-                                                        disabled:opacity-50
-                                                    "
-                                                >
-                                                    {pending
-                                                        ? "Saving..."
-                                                        : "Save Changes"}
-                                                </button>
+                                                <div>
 
-
-                                                <button
-                                                    type="button"
-                                                    disabled={
-                                                        pending
-                                                    }
-                                                    onClick={
-                                                        cancelEdit
-                                                    }
-                                                    className="
-                                                        rounded-full
-                                                        bg-[#e8e4dc]
-                                                        px-5
-                                                        py-2.5
-                                                        text-sm
-                                                        font-bold
-                                                        text-[#4e4a42]
-                                                        transition
-                                                        hover:bg-[#ddd8ce]
-                                                    "
-                                                >
-                                                    Cancel
-                                                </button>
-
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
-                                ) : (
-
-                                    /* NORMAL CARD */
-
-                                    <>
-
-                                        <div
-                                            className="
-                                                mt-6
-                                                grid
-                                                grid-cols-2
-                                                gap-4
-                                                border-y
-                                                border-[#eee9df]
-                                                py-5
-                                            "
-                                        >
-
-                                            <div>
-
-                                                <p
-                                                    className="
-                                                        text-xs
-                                                        font-medium
-                                                        uppercase
-                                                        tracking-wide
-                                                        text-[#9a9489]
-                                                    "
-                                                >
-                                                    Price / day
-                                                </p>
-
-
-                                                <p
-                                                    className="
-                                                        mt-1
-                                                        text-xl
-                                                        font-black
-                                                        text-[#dc7755]
-                                                    "
-                                                >
-                                                    $
-                                                    {
-                                                        item.pricePerDay ??
-                                                        "0"
-                                                    }
-                                                </p>
-
-                                            </div>
-
-
-                                            <div>
-
-                                                <p
-                                                    className="
-                                                        text-xs
-                                                        font-medium
-                                                        uppercase
-                                                        tracking-wide
-                                                        text-[#9a9489]
-                                                    "
-                                                >
-                                                    Stock
-                                                </p>
-
-
-                                                <p
-                                                    className="
-                                                        mt-1
-                                                        text-xl
-                                                        font-black
-                                                    "
-                                                >
-                                                    {
-                                                        item.availableStock ??
-                                                        0
-                                                    }
-
-                                                    <span
+                                                    <h3
                                                         className="
-                                                            ml-1
-                                                            text-sm
-                                                            font-medium
-                                                            text-[#999287]
+                                                            text-2xl
+                                                            font-extrabold
+                                                            leading-tight
+                                                            tracking-[-0.03em]
+                                                            text-[#211f1a]
                                                         "
                                                     >
-                                                        /
-                                                        {
-                                                            item.stock ??
-                                                            0
-                                                        }
-                                                    </span>
+                                                        {item.name}
+                                                    </h3>
 
-                                                </p>
+                                                    <p
+                                                        className="
+                                                            mt-2
+                                                            text-sm
+                                                            text-[#827b6d]
+                                                        "
+                                                    >
+                                                        {item.brand ||
+                                                            "No brand"}
+                                                    </p>
+
+                                                </div>
+
+
+                                                <span
+                                                    className={`
+                                                        shrink-0
+                                                        rounded-full
+                                                        px-4
+                                                        py-2
+                                                        text-xs
+                                                        font-bold
+                                                        ${
+                                                            isAvailable
+                                                                ? "bg-[#e7efe2] text-[#63755a]"
+                                                                : "bg-[#f7ddd5] text-[#bd5f3f]"
+                                                        }
+                                                    `}
+                                                >
+                                                    {isAvailable
+                                                        ? "AVAILABLE"
+                                                        : "UNAVAILABLE"}
+                                                </span>
 
                                             </div>
 
-                                        </div>
 
-
-                                        {item.location && (
+                                            {/* INFO */}
 
                                             <div
                                                 className="
-                                                    mt-5
-                                                    flex
-                                                    items-center
-                                                    gap-2
-                                                    text-sm
-                                                    text-[#777267]
+                                                    mt-6
+                                                    grid
+                                                    grid-cols-2
+                                                    gap-4
+                                                    border-y
+                                                    border-[#eee8dc]
+                                                    py-5
                                                 "
                                             >
 
-                                                <span
-                                                    className="
-                                                        flex
-                                                        h-8
-                                                        w-8
-                                                        items-center
-                                                        justify-center
-                                                        rounded-xl
-                                                        bg-[#eeeadf]
-                                                        text-xs
-                                                    "
-                                                >
-                                                    ●
-                                                </span>
+                                                <div>
+
+                                                    <p
+                                                        className="
+                                                            text-xs
+                                                            font-semibold
+                                                            uppercase
+                                                            tracking-wider
+                                                            text-[#9b9488]
+                                                        "
+                                                    >
+                                                        Price / Day
+                                                    </p>
+
+                                                    <p
+                                                        className="
+                                                            mt-1
+                                                            text-xl
+                                                            font-extrabold
+                                                            text-[#d97757]
+                                                        "
+                                                    >
+                                                        $
+                                                        {getNumber(
+                                                            item.pricePerDay
+                                                        )}
+                                                    </p>
+
+                                                </div>
 
 
-                                                <span>
-                                                    {
-                                                        item.location
-                                                    }
-                                                </span>
+                                                <div>
+
+                                                    <p
+                                                        className="
+                                                            text-xs
+                                                            font-semibold
+                                                            uppercase
+                                                            tracking-wider
+                                                            text-[#9b9488]
+                                                        "
+                                                    >
+                                                        Stock
+                                                    </p>
+
+                                                    <p
+                                                        className="
+                                                            mt-1
+                                                            text-xl
+                                                            font-extrabold
+                                                            text-[#211f1a]
+                                                        "
+                                                    >
+                                                        {available}
+                                                        <span
+                                                            className="
+                                                                ml-1
+                                                                text-sm
+                                                                font-medium
+                                                                text-[#9b9488]
+                                                            "
+                                                        >
+                                                            / {total}
+                                                        </span>
+                                                    </p>
+
+                                                </div>
 
                                             </div>
 
-                                        )}
+
+                                            {item.location && (
+
+                                                <p
+                                                    className="
+                                                        mt-5
+                                                        text-sm
+                                                        text-[#827b6d]
+                                                    "
+                                                >
+                                                    ●{" "}
+                                                    {item.location}
+                                                </p>
+
+                                            )}
 
 
-                                        {item.description && (
+                                            {item.description && (
 
-                                            <p
-                                                className="
-                                                    mt-4
-                                                    line-clamp-3
-                                                    text-sm
-                                                    leading-6
-                                                    text-[#777267]
-                                                "
-                                            >
-                                                {
-                                                    item.description
-                                                }
-                                            </p>
+                                                <p
+                                                    className="
+                                                        mt-4
+                                                        text-sm
+                                                        leading-6
+                                                        text-[#827b6d]
+                                                    "
+                                                >
+                                                    {
+                                                        item.description
+                                                    }
+                                                </p>
 
-                                        )}
-
-
-                                        <div
-                                            className="
-                                                mt-6
-                                                flex
-                                                items-center
-                                                gap-3
-                                            "
-                                        >
-
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    startEdit(
-                                                        item
-                                                    )
-                                                }
-                                                className="
-                                                    rounded-full
-                                                    bg-[#24231f]
-                                                    px-5
-                                                    py-2.5
-                                                    text-sm
-                                                    font-bold
-                                                    text-white
-                                                    transition
-                                                    hover:bg-[#35332e]
-                                                "
-                                            >
-                                                Edit
-                                            </button>
+                                            )}
 
 
-                                            <button
-                                                type="button"
-                                                disabled={
-                                                    pending
-                                                }
-                                                onClick={() =>
-                                                    deleteGear(
-                                                        item.id
-                                                    )
-                                                }
-                                                className="
-                                                    rounded-full
-                                                    border
-                                                    border-[#ead6cf]
-                                                    bg-[#fff7f4]
-                                                    px-5
-                                                    py-2.5
-                                                    text-sm
-                                                    font-bold
-                                                    text-[#b85d40]
-                                                    transition
-                                                    hover:bg-[#fbe9e3]
-                                                    disabled:opacity-50
-                                                "
-                                            >
-                                                Delete
-                                            </button>
+                                            {/* =================================================
+                                                EDIT FORM
+                                            ================================================= */}
+
+                                            {isEditing && (
+
+                                                <div
+                                                    className="
+                                                        mt-6
+                                                        rounded-[20px]
+                                                        bg-[#faf7f0]
+                                                        p-5
+                                                    "
+                                                >
+
+                                                    <p
+                                                        className="
+                                                            text-sm
+                                                            font-bold
+                                                            uppercase
+                                                            tracking-[0.16em]
+                                                            text-[#d97757]
+                                                        "
+                                                    >
+                                                        Edit Listing
+                                                    </p>
+
+                                                    <h4
+                                                        className="
+                                                            mt-2
+                                                            text-xl
+                                                            font-extrabold
+                                                            text-[#211f1a]
+                                                        "
+                                                    >
+                                                        Update Gear
+                                                    </h4>
+
+
+                                                    <div
+                                                        className="
+                                                            mt-6
+                                                            grid
+                                                            grid-cols-1
+                                                            gap-4
+                                                            sm:grid-cols-2
+                                                        "
+                                                    >
+
+                                                        {/* NAME */}
+
+                                                        <div
+                                                            className="
+                                                                sm:col-span-2
+                                                            "
+                                                        >
+
+                                                            <label
+                                                                className="
+                                                                    mb-2
+                                                                    block
+                                                                    text-sm
+                                                                    font-bold
+                                                                    text-[#211f1a]
+                                                                "
+                                                            >
+                                                                Gear Name *
+                                                            </label>
+
+                                                            <input
+                                                                value={
+                                                                    editName
+                                                                }
+                                                                onChange={(
+                                                                    event
+                                                                ) =>
+                                                                    setEditName(
+                                                                        event
+                                                                            .target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                                className="
+                                                                    w-full
+                                                                    rounded-xl
+                                                                    border
+                                                                    border-[#d9d3c7]
+                                                                    bg-white
+                                                                    px-4
+                                                                    py-3
+                                                                    outline-none
+                                                                    focus:border-[#d97757]
+                                                                "
+                                                            />
+
+                                                        </div>
+
+
+                                                        {/* BRAND */}
+
+                                                        <div>
+
+                                                            <label
+                                                                className="
+                                                                    mb-2
+                                                                    block
+                                                                    text-sm
+                                                                    font-bold
+                                                                    text-[#211f1a]
+                                                                "
+                                                            >
+                                                                Brand
+                                                            </label>
+
+                                                            <input
+                                                                value={
+                                                                    editBrand
+                                                                }
+                                                                onChange={(
+                                                                    event
+                                                                ) =>
+                                                                    setEditBrand(
+                                                                        event
+                                                                            .target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                                className="
+                                                                    w-full
+                                                                    rounded-xl
+                                                                    border
+                                                                    border-[#d9d3c7]
+                                                                    bg-white
+                                                                    px-4
+                                                                    py-3
+                                                                    outline-none
+                                                                    focus:border-[#d97757]
+                                                                "
+                                                            />
+
+                                                        </div>
+
+
+                                                        {/* PRICE */}
+
+                                                        <div>
+
+                                                            <label
+                                                                className="
+                                                                    mb-2
+                                                                    block
+                                                                    text-sm
+                                                                    font-bold
+                                                                    text-[#211f1a]
+                                                                "
+                                                            >
+                                                                Price Per Day *
+                                                            </label>
+
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                step="0.01"
+                                                                value={
+                                                                    editPrice
+                                                                }
+                                                                onChange={(
+                                                                    event
+                                                                ) =>
+                                                                    setEditPrice(
+                                                                        event
+                                                                            .target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                                className="
+                                                                    w-full
+                                                                    rounded-xl
+                                                                    border
+                                                                    border-[#d9d3c7]
+                                                                    bg-white
+                                                                    px-4
+                                                                    py-3
+                                                                    outline-none
+                                                                    focus:border-[#d97757]
+                                                                "
+                                                            />
+
+                                                        </div>
+
+
+                                                        {/* DEPOSIT */}
+
+                                                        <div>
+
+                                                            <label
+                                                                className="
+                                                                    mb-2
+                                                                    block
+                                                                    text-sm
+                                                                    font-bold
+                                                                    text-[#211f1a]
+                                                                "
+                                                            >
+                                                                Deposit Amount *
+                                                            </label>
+
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                step="0.01"
+                                                                value={
+                                                                    editDeposit
+                                                                }
+                                                                onChange={(
+                                                                    event
+                                                                ) =>
+                                                                    setEditDeposit(
+                                                                        event
+                                                                            .target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                                className="
+                                                                    w-full
+                                                                    rounded-xl
+                                                                    border
+                                                                    border-[#d9d3c7]
+                                                                    bg-white
+                                                                    px-4
+                                                                    py-3
+                                                                    outline-none
+                                                                    focus:border-[#d97757]
+                                                                "
+                                                            />
+
+                                                        </div>
+
+
+                                                        {/* TOTAL STOCK */}
+
+                                                        <div>
+
+                                                            <label
+                                                                className="
+                                                                    mb-2
+                                                                    block
+                                                                    text-sm
+                                                                    font-bold
+                                                                    text-[#211f1a]
+                                                                "
+                                                            >
+                                                                Total Stock *
+                                                            </label>
+
+                                                            <input
+                                                                type="number"
+                                                                min="1"
+                                                                step="1"
+                                                                value={
+                                                                    editTotalStock
+                                                                }
+                                                                onChange={(
+                                                                    event
+                                                                ) =>
+                                                                    setEditTotalStock(
+                                                                        event
+                                                                            .target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                                className="
+                                                                    w-full
+                                                                    rounded-xl
+                                                                    border
+                                                                    border-[#d9d3c7]
+                                                                    bg-white
+                                                                    px-4
+                                                                    py-3
+                                                                    outline-none
+                                                                    focus:border-[#d97757]
+                                                                "
+                                                            />
+
+                                                        </div>
+
+
+                                                        {/* AVAILABLE STOCK */}
+
+                                                        <div>
+
+                                                            <label
+                                                                className="
+                                                                    mb-2
+                                                                    block
+                                                                    text-sm
+                                                                    font-bold
+                                                                    text-[#211f1a]
+                                                                "
+                                                            >
+                                                                Available Stock *
+                                                            </label>
+
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                step="1"
+                                                                value={
+                                                                    editAvailableStock
+                                                                }
+                                                                onChange={(
+                                                                    event
+                                                                ) =>
+                                                                    setEditAvailableStock(
+                                                                        event
+                                                                            .target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                                className={`
+                                                                    w-full
+                                                                    rounded-xl
+                                                                    border
+                                                                    bg-white
+                                                                    px-4
+                                                                    py-3
+                                                                    outline-none
+                                                                    ${
+                                                                        editAvailableNumber >
+                                                                        editStockNumber
+                                                                            ? "border-red-400"
+                                                                            : "border-[#d9d3c7]"
+                                                                    }
+                                                                `}
+                                                            />
+
+                                                            {editAvailableNumber >
+                                                                editStockNumber && (
+
+                                                                <p
+                                                                    className="
+                                                                        mt-1
+                                                                        text-xs
+                                                                        font-semibold
+                                                                        text-red-600
+                                                                    "
+                                                                >
+                                                                    Available stock
+                                                                    cannot exceed
+                                                                    total stock.
+                                                                </p>
+
+                                                            )}
+
+                                                        </div>
+
+
+                                                        {/* CONDITION */}
+
+                                                        <div>
+
+                                                            <label
+                                                                className="
+                                                                    mb-2
+                                                                    block
+                                                                    text-sm
+                                                                    font-bold
+                                                                    text-[#211f1a]
+                                                                "
+                                                            >
+                                                                Condition
+                                                            </label>
+
+                                                            <select
+                                                                value={
+                                                                    editCondition
+                                                                }
+                                                                onChange={(
+                                                                    event
+                                                                ) =>
+                                                                    setEditCondition(
+                                                                        event
+                                                                            .target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                                className="
+                                                                    w-full
+                                                                    rounded-xl
+                                                                    border
+                                                                    border-[#d9d3c7]
+                                                                    bg-white
+                                                                    px-4
+                                                                    py-3
+                                                                    outline-none
+                                                                    focus:border-[#d97757]
+                                                                "
+                                                            >
+
+                                                                {CONDITIONS.map(
+                                                                    (
+                                                                        item
+                                                                    ) => (
+
+                                                                        <option
+                                                                            key={
+                                                                                item.value
+                                                                            }
+                                                                            value={
+                                                                                item.value
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                item.label
+                                                                            }
+                                                                        </option>
+
+                                                                    )
+                                                                )}
+
+                                                            </select>
+
+                                                        </div>
+
+
+                                                        {/* CATEGORY */}
+
+                                                        <div>
+
+                                                            <label
+                                                                className="
+                                                                    mb-2
+                                                                    block
+                                                                    text-sm
+                                                                    font-bold
+                                                                    text-[#211f1a]
+                                                                "
+                                                            >
+                                                                Category
+                                                            </label>
+
+                                                            <select
+                                                                value={
+                                                                    editCategoryId
+                                                                }
+                                                                onChange={(
+                                                                    event
+                                                                ) =>
+                                                                    setEditCategoryId(
+                                                                        event
+                                                                            .target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                                className="
+                                                                    w-full
+                                                                    rounded-xl
+                                                                    border
+                                                                    border-[#d9d3c7]
+                                                                    bg-white
+                                                                    px-4
+                                                                    py-3
+                                                                    outline-none
+                                                                    focus:border-[#d97757]
+                                                                "
+                                                            >
+
+                                                                <option value="">
+                                                                    Keep current
+                                                                </option>
+
+                                                                {categories.map(
+                                                                    (
+                                                                        category
+                                                                    ) => (
+
+                                                                        <option
+                                                                            key={
+                                                                                category.id
+                                                                            }
+                                                                            value={
+                                                                                category.id
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                category.name
+                                                                            }
+                                                                        </option>
+
+                                                                    )
+                                                                )}
+
+                                                            </select>
+
+                                                        </div>
+
+
+                                                        {/* LOCATION */}
+
+                                                        <div
+                                                            className="
+                                                                sm:col-span-2
+                                                            "
+                                                        >
+
+                                                            <label
+                                                                className="
+                                                                    mb-2
+                                                                    block
+                                                                    text-sm
+                                                                    font-bold
+                                                                    text-[#211f1a]
+                                                                "
+                                                            >
+                                                                Location
+                                                            </label>
+
+                                                            <input
+                                                                value={
+                                                                    editLocation
+                                                                }
+                                                                onChange={(
+                                                                    event
+                                                                ) =>
+                                                                    setEditLocation(
+                                                                        event
+                                                                            .target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                                className="
+                                                                    w-full
+                                                                    rounded-xl
+                                                                    border
+                                                                    border-[#d9d3c7]
+                                                                    bg-white
+                                                                    px-4
+                                                                    py-3
+                                                                    outline-none
+                                                                    focus:border-[#d97757]
+                                                                "
+                                                            />
+
+                                                        </div>
+
+
+                                                        {/* DESCRIPTION */}
+
+                                                        <div
+                                                            className="
+                                                                sm:col-span-2
+                                                            "
+                                                        >
+
+                                                            <label
+                                                                className="
+                                                                    mb-2
+                                                                    block
+                                                                    text-sm
+                                                                    font-bold
+                                                                    text-[#211f1a]
+                                                                "
+                                                            >
+                                                                Description
+                                                            </label>
+
+                                                            <textarea
+                                                                value={
+                                                                    editDescription
+                                                                }
+                                                                onChange={(
+                                                                    event
+                                                                ) =>
+                                                                    setEditDescription(
+                                                                        event
+                                                                            .target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                                rows={4}
+                                                                className="
+                                                                    w-full
+                                                                    resize-none
+                                                                    rounded-xl
+                                                                    border
+                                                                    border-[#d9d3c7]
+                                                                    bg-white
+                                                                    px-4
+                                                                    py-3
+                                                                    outline-none
+                                                                    focus:border-[#d97757]
+                                                                "
+                                                            />
+
+                                                        </div>
+
+
+                                                        {/* IMAGES */}
+
+                                                        <div
+                                                            className="
+                                                                sm:col-span-2
+                                                            "
+                                                        >
+
+                                                            <div
+                                                                className="
+                                                                    mb-3
+                                                                    flex
+                                                                    items-center
+                                                                    justify-between
+                                                                "
+                                                            >
+
+                                                                <label
+                                                                    className="
+                                                                        text-sm
+                                                                        font-bold
+                                                                        text-[#211f1a]
+                                                                    "
+                                                                >
+                                                                    Images
+                                                                </label>
+
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={
+                                                                        addEditImageField
+                                                                    }
+                                                                    className="
+                                                                        text-sm
+                                                                        font-bold
+                                                                        text-[#d97757]
+                                                                        hover:underline
+                                                                    "
+                                                                >
+                                                                    + Add Image
+                                                                </button>
+
+                                                            </div>
+
+
+                                                            {editImages.length ===
+                                                                0 && (
+
+                                                                <p
+                                                                    className="
+                                                                        mb-3
+                                                                        rounded-xl
+                                                                        bg-white
+                                                                        px-4
+                                                                        py-3
+                                                                        text-sm
+                                                                        text-[#827b6d]
+                                                                    "
+                                                                >
+                                                                    No images.
+                                                                    Click
+                                                                    "+ Add Image"
+                                                                    to add one.
+                                                                </p>
+
+                                                            )}
+
+
+                                                            <div
+                                                                className="
+                                                                    space-y-3
+                                                                "
+                                                            >
+
+                                                                {editImages.map(
+                                                                    (
+                                                                        url,
+                                                                        index
+                                                                    ) => (
+
+                                                                        <div
+                                                                            key={
+                                                                                index
+                                                                            }
+                                                                            className="
+                                                                                flex
+                                                                                gap-2
+                                                                            "
+                                                                        >
+
+                                                                            <input
+                                                                                value={
+                                                                                    url
+                                                                                }
+                                                                                onChange={(
+                                                                                    event
+                                                                                ) =>
+                                                                                    updateEditImageField(
+                                                                                        index,
+                                                                                        event
+                                                                                            .target
+                                                                                            .value
+                                                                                    )
+                                                                                }
+                                                                                placeholder="https://example.com/image.jpg"
+                                                                                className="
+                                                                                    min-w-0
+                                                                                    flex-1
+                                                                                    rounded-xl
+                                                                                    border
+                                                                                    border-[#d9d3c7]
+                                                                                    bg-white
+                                                                                    px-4
+                                                                                    py-3
+                                                                                    outline-none
+                                                                                    focus:border-[#d97757]
+                                                                                "
+                                                                            />
+
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() =>
+                                                                                    removeEditImageField(
+                                                                                        index
+                                                                                    )
+                                                                                }
+                                                                                className="
+                                                                                    rounded-xl
+                                                                                    border
+                                                                                    border-[#efd3ca]
+                                                                                    px-4
+                                                                                    font-bold
+                                                                                    text-[#bd5f3f]
+                                                                                "
+                                                                            >
+                                                                                Remove
+                                                                            </button>
+
+                                                                        </div>
+
+                                                                    )
+                                                                )}
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+
+                                                    {/* EDIT BUTTONS */}
+
+                                                    <div
+                                                        className="
+                                                            mt-6
+                                                            flex
+                                                            flex-wrap
+                                                            gap-3
+                                                        "
+                                                    >
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleSaveEdit(
+                                                                    item.id
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                pending ||
+                                                                editAvailableNumber >
+                                                                    editStockNumber
+                                                            }
+                                                            className="
+                                                                rounded-xl
+                                                                bg-[#d97757]
+                                                                px-6
+                                                                py-3
+                                                                font-bold
+                                                                text-white
+                                                                transition
+                                                                hover:bg-[#c76547]
+                                                                disabled:cursor-not-allowed
+                                                                disabled:opacity-60
+                                                            "
+                                                        >
+                                                            {pending
+                                                                ? "Saving..."
+                                                                : "Save Changes"}
+                                                        </button>
+
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={
+                                                                cancelEdit
+                                                            }
+                                                            disabled={
+                                                                pending
+                                                            }
+                                                            className="
+                                                                rounded-xl
+                                                                bg-[#e8e3da]
+                                                                px-6
+                                                                py-3
+                                                                font-bold
+                                                                text-[#211f1a]
+                                                            "
+                                                        >
+                                                            Cancel
+                                                        </button>
+
+                                                    </div>
+
+                                                </div>
+
+                                            )}
+
+
+                                            {/* CARD BUTTONS */}
+
+                                            {!isEditing && (
+
+                                                <div
+                                                    className="
+                                                        mt-6
+                                                        flex
+                                                        gap-3
+                                                    "
+                                                >
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            startEdit(
+                                                                item
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            pending
+                                                        }
+                                                        className="
+                                                            rounded-xl
+                                                            bg-[#211f1a]
+                                                            px-6
+                                                            py-3
+                                                            text-sm
+                                                            font-bold
+                                                            text-white
+                                                            transition
+                                                            hover:bg-[#d97757]
+                                                            disabled:cursor-not-allowed
+                                                            disabled:opacity-60
+                                                        "
+                                                    >
+                                                        Edit
+                                                    </button>
+
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                item.id
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            pending
+                                                        }
+                                                        className="
+                                                            rounded-xl
+                                                            border
+                                                            border-[#efd3ca]
+                                                            bg-white
+                                                            px-6
+                                                            py-3
+                                                            text-sm
+                                                            font-bold
+                                                            text-[#bd5f3f]
+                                                            transition
+                                                            hover:bg-[#fff6f3]
+                                                            disabled:cursor-not-allowed
+                                                            disabled:opacity-60
+                                                        "
+                                                    >
+                                                        Delete
+                                                    </button>
+
+                                                </div>
+
+                                            )}
 
                                         </div>
 
-                                    </>
+                                    </article>
 
-                                )}
+                                );
 
-                            </div>
+                            }
+                        )}
 
-                        </div>
+                    </div>
 
-                    ))}
+                )}
 
-                </div>
-
-            )}
+            </div>
 
         </section>
 

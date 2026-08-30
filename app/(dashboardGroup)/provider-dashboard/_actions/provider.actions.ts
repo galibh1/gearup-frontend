@@ -9,10 +9,14 @@ import {
     deleteProviderGear,
 } from "@/services/provider.service";
 
-
 import {
     getAllCategories,
 } from "@/services/category.service";
+
+
+// =========================================================
+// PROVIDER ORDERS
+// =========================================================
 
 export async function fetchProviderOrders() {
 
@@ -23,17 +27,23 @@ export async function fetchProviderOrders() {
 
         return {
             success: true,
-            data: result.data,
-            meta: result.meta,
+
+            data:
+                result.data,
+
+            meta:
+                result.meta,
         };
 
     } catch (error: any) {
 
         return {
             success: false,
+
             message:
-                error.message ||
+                error?.message ||
                 "Failed to fetch provider orders",
+
             data: [],
         };
 
@@ -41,6 +51,9 @@ export async function fetchProviderOrders() {
 }
 
 
+// =========================================================
+// RENTAL STATUS
+// =========================================================
 
 export async function approveRental(
     id: string
@@ -56,7 +69,10 @@ export async function approveRental(
 
         return {
             success: true,
-            data: result.data,
+
+            data:
+                result.data,
+
             message:
                 result.message ||
                 "Rental confirmed successfully",
@@ -66,14 +82,14 @@ export async function approveRental(
 
         return {
             success: false,
+
             message:
-                error.message ||
+                error?.message ||
                 "Failed to confirm rental",
         };
 
     }
 }
-
 
 
 export async function markRentalPickedUp(
@@ -90,7 +106,10 @@ export async function markRentalPickedUp(
 
         return {
             success: true,
-            data: result.data,
+
+            data:
+                result.data,
+
             message:
                 result.message ||
                 "Rental marked as picked up",
@@ -100,14 +119,14 @@ export async function markRentalPickedUp(
 
         return {
             success: false,
+
             message:
-                error.message ||
+                error?.message ||
                 "Failed to update rental",
         };
 
     }
 }
-
 
 
 export async function markRentalReturned(
@@ -124,7 +143,10 @@ export async function markRentalReturned(
 
         return {
             success: true,
-            data: result.data,
+
+            data:
+                result.data,
+
             message:
                 result.message ||
                 "Rental marked as returned",
@@ -134,8 +156,9 @@ export async function markRentalReturned(
 
         return {
             success: false,
+
             message:
-                error.message ||
+                error?.message ||
                 "Failed to return rental",
         };
 
@@ -143,6 +166,9 @@ export async function markRentalReturned(
 }
 
 
+// =========================================================
+// PROVIDER GEAR
+// =========================================================
 
 export async function fetchProviderGear() {
 
@@ -153,16 +179,20 @@ export async function fetchProviderGear() {
 
         return {
             success: true,
-            data: result.data || [],
+
+            data:
+                result.data || [],
         };
 
     } catch (error: any) {
 
         return {
             success: false,
+
             data: [],
+
             message:
-                error.message ||
+                error?.message ||
                 "Failed to fetch your gear",
         };
 
@@ -170,9 +200,14 @@ export async function fetchProviderGear() {
 }
 
 
+// =========================================================
+// ADD GEAR
+// =========================================================
 
 export async function addProviderGear(
-    data: Parameters<typeof createProviderGear>[0]
+    data: Parameters<
+        typeof createProviderGear
+    >[0]
 ) {
 
     try {
@@ -182,7 +217,10 @@ export async function addProviderGear(
 
         return {
             success: true,
-            data: result.data,
+
+            data:
+                result.data,
+
             message:
                 result.message ||
                 "Gear created successfully",
@@ -192,8 +230,9 @@ export async function addProviderGear(
 
         return {
             success: false,
+
             message:
-                error.message ||
+                error?.message ||
                 "Failed to create gear",
         };
 
@@ -201,12 +240,38 @@ export async function addProviderGear(
 }
 
 
+// =========================================================
+// EDIT GEAR
+// =========================================================
 
 export async function editProviderGear(
     id: string,
     data: {
+
+        name?: string;
+
+        brand?: string | null;
+
         pricePerDay?: number;
+
+        depositAmount?: number;
+
+        stock?: number;
+
         availableStock?: number;
+
+        condition?: string;
+
+        // IMPORTANT:
+        // This was missing before.
+        status?: string;
+
+        imageUrls?: string[];
+
+        location?: string | null;
+
+        categoryId?: string;
+
         description?: string;
     }
 ) {
@@ -221,7 +286,10 @@ export async function editProviderGear(
 
         return {
             success: true,
-            data: result.data,
+
+            data:
+                result.data,
+
             message:
                 result.message ||
                 "Gear updated successfully",
@@ -231,8 +299,9 @@ export async function editProviderGear(
 
         return {
             success: false,
+
             message:
-                error.message ||
+                error?.message ||
                 "Failed to update gear",
         };
 
@@ -240,6 +309,9 @@ export async function editProviderGear(
 }
 
 
+// =========================================================
+// DELETE GEAR
+// =========================================================
 
 export async function removeProviderGear(
     id: string
@@ -252,6 +324,7 @@ export async function removeProviderGear(
 
         return {
             success: true,
+
             message:
                 result.message ||
                 "Gear deleted successfully",
@@ -261,8 +334,9 @@ export async function removeProviderGear(
 
         return {
             success: false,
+
             message:
-                error.message ||
+                error?.message ||
                 "Failed to delete gear",
         };
 
@@ -270,6 +344,9 @@ export async function removeProviderGear(
 }
 
 
+// =========================================================
+// CATEGORIES
+// =========================================================
 
 export async function fetchCategories() {
 
@@ -278,23 +355,24 @@ export async function fetchCategories() {
         const result =
             await getAllCategories();
 
-
         return {
             success: true,
-            data: result.data || [],
-        };
 
+            data:
+                result.data || [],
+        };
 
     } catch (error: any) {
 
         return {
             success: false,
+
             data: [],
+
             message:
-                error.message ||
+                error?.message ||
                 "Failed to fetch categories",
         };
 
     }
-
 }

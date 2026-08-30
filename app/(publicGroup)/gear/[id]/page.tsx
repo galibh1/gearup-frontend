@@ -47,11 +47,13 @@ export default async function GearDetailsPage({
         notFound();
     }
 
-    const image =
-        gear.imageUrls?.[0] &&
-        !gear.imageUrls[0].includes("example.com")
-            ? gear.imageUrls[0]
-            : "/placeholder-gear.jpg";
+    const imageUrl =
+        gear.imageUrls?.[0];
+
+    const hasImage =
+        typeof imageUrl === "string" &&
+        imageUrl.trim().length > 0 &&
+        !imageUrl.includes("example.com");
 
     return (
         <main className="min-h-screen bg-[#f4f1e8] text-[#211f1a]">
@@ -72,6 +74,7 @@ export default async function GearDetailsPage({
                         </div>
 
                         <div>
+
                             <div className="text-lg font-bold tracking-tight">
                                 Gear<span className="text-[#d97757]">Up</span>
                             </div>
@@ -79,6 +82,7 @@ export default async function GearDetailsPage({
                             <div className="hidden text-[9px] uppercase tracking-[0.16em] text-[#a49d8c] sm:block">
                                 Rent · Explore · Repeat
                             </div>
+
                         </div>
 
                     </Link>
@@ -104,13 +108,17 @@ export default async function GearDetailsPage({
                             hover:text-[#bd5f3f]
                         "
                     >
+
                         <ArrowLeft className="h-4 w-4" />
+
                         <span className="hidden sm:inline">
                             Back to gear
                         </span>
+
                         <span className="sm:hidden">
                             Back
                         </span>
+
                     </Link>
 
                 </div>
@@ -171,14 +179,95 @@ export default async function GearDetailsPage({
 
                             <div className="relative min-h-[380px] bg-[#e7e3d8] sm:min-h-[500px] lg:min-h-[650px]">
 
-                                <Image
-                                    src={image}
-                                    alt={gear.name}
-                                    fill
-                                    priority
-                                    sizes="(max-width: 1024px) 100vw, 50vw"
-                                    className="object-cover"
-                                />
+                                {hasImage ? (
+
+                                    <Image
+                                        src={imageUrl}
+                                        alt={gear.name}
+                                        fill
+                                        priority
+                                        sizes="(max-width: 1024px) 100vw, 50vw"
+                                        className="object-cover"
+                                    />
+
+                                ) : (
+
+                                    <div
+                                        className="
+                                            flex
+                                            h-full
+                                            w-full
+                                            items-center
+                                            justify-center
+                                            bg-[#e7e3d8]
+                                        "
+                                    >
+
+                                        <div className="text-center">
+
+                                            <div
+                                                className="
+                                                    mx-auto
+                                                    flex
+                                                    h-16
+                                                    w-16
+                                                    items-center
+                                                    justify-center
+                                                    rounded-2xl
+                                                    bg-white
+                                                    text-[#918b80]
+                                                    shadow-sm
+                                                "
+                                            >
+
+                                                <svg
+                                                    width="28"
+                                                    height="28"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.7"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <rect
+                                                        x="3"
+                                                        y="3"
+                                                        width="18"
+                                                        height="18"
+                                                        rx="2"
+                                                    />
+
+                                                    <circle
+                                                        cx="8.5"
+                                                        cy="8.5"
+                                                        r="1.5"
+                                                    />
+
+                                                    <path
+                                                        d="m21 15-5-5L5 21"
+                                                    />
+                                                </svg>
+
+                                            </div>
+
+
+                                            <p
+                                                className="
+                                                    mt-4
+                                                    text-sm
+                                                    font-semibold
+                                                    text-[#918b80]
+                                                "
+                                            >
+                                                No image available
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                )}
 
 
                                 {/* Image overlay */}
@@ -201,7 +290,6 @@ export default async function GearDetailsPage({
                             {/* ================= DETAILS ================= */}
 
                             <div className="flex flex-col p-6 sm:p-9 lg:p-11 xl:p-12">
-
 
                                 {/* Label */}
 
@@ -236,8 +324,10 @@ export default async function GearDetailsPage({
                                 {/* Description */}
 
                                 <p className="mt-5 max-w-xl text-[15px] leading-7 text-[#726c60]">
+
                                     {gear.description ||
                                         "Premium gear available for your next adventure."}
+
                                 </p>
 
 
@@ -250,8 +340,10 @@ export default async function GearDetailsPage({
                                     </p>
 
                                     <p className="mt-1 text-sm font-bold text-[#211f1a]">
+
                                         {gear.provider?.name ||
                                             "GearUp Provider"}
+
                                     </p>
 
                                 </div>
@@ -320,8 +412,6 @@ export default async function GearDetailsPage({
                                     </div>
 
 
-                                    {/* Existing rental/payment functionality */}
-
                                     <RentalForm
                                         gearId={gear.id}
                                     />
@@ -348,7 +438,6 @@ export default async function GearDetailsPage({
                                     </div>
 
                                 </div>
-
 
                             </div>
 
