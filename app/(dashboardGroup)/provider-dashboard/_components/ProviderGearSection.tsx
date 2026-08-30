@@ -35,6 +35,7 @@ type GearItem = {
     status?: string;
     location?: string;
     description?: string;
+    imageUrls?: string[];
 };
 
 
@@ -71,6 +72,10 @@ export default function ProviderGearSection({
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState("");
     const [categoryId, setCategoryId] = useState("");
+
+    // IMAGE URLS
+    const [imageUrls, setImageUrls] =
+        useState<string[]>([""]);
 
 
     // EDIT FORM
@@ -119,6 +124,7 @@ export default function ProviderGearSection({
         setLocation("");
         setDescription("");
         setCategoryId("");
+        setImageUrls([""]);
 
     }
 
@@ -135,11 +141,15 @@ export default function ProviderGearSection({
     function handleAddGear() {
 
         const parsedPrice = Number(price);
-        const parsedDeposit = Number(depositAmount);
-        const parsedStock = Number(stock);
-        const parsedAvailableStock = Number(
-            availableStock
-        );
+
+        const parsedDeposit =
+            Number(depositAmount);
+
+        const parsedStock =
+            Number(stock);
+
+        const parsedAvailableStock =
+            Number(availableStock);
 
 
         if (!name.trim()) {
@@ -231,6 +241,18 @@ export default function ProviderGearSection({
                     );
 
 
+            /*
+             * Convert the entered image URLs into
+             * a clean array.
+             *
+             * Empty fields are removed.
+             */
+            const cleanedImageUrls =
+                imageUrls
+                    .map((url) => url.trim())
+                    .filter(Boolean);
+
+
             const result =
                 await addProviderGear({
 
@@ -241,7 +263,8 @@ export default function ProviderGearSection({
                     description:
                         description.trim(),
 
-                    brand: brand.trim(),
+                    brand:
+                        brand.trim(),
 
                     pricePerDay:
                         parsedPrice,
@@ -260,7 +283,11 @@ export default function ProviderGearSection({
                     status:
                         "AVAILABLE",
 
-                    imageUrls: [],
+                    /*
+                     * THIS IS THE IMPORTANT FIX.
+                     */
+                    imageUrls:
+                        cleanedImageUrls,
 
                     specifications: {},
 
@@ -513,6 +540,63 @@ export default function ProviderGearSection({
             );
 
         });
+
+    }
+
+
+    /*
+     * IMAGE URL HELPERS
+     */
+
+    function updateImageUrl(
+        index: number,
+        value: string
+    ) {
+
+        setImageUrls(
+            (current) =>
+                current.map(
+                    (url, i) =>
+                        i === index
+                            ? value
+                            : url
+                )
+        );
+
+    }
+
+
+    function addImageField() {
+
+        setImageUrls(
+            (current) => [
+                ...current,
+                "",
+            ]
+        );
+
+    }
+
+
+    function removeImageField(
+        index: number
+    ) {
+
+        setImageUrls(
+            (current) => {
+
+                const updated =
+                    current.filter(
+                        (_, i) =>
+                            i !== index
+                    );
+
+                return updated.length
+                    ? updated
+                    : [""];
+
+            }
+        );
 
     }
 
@@ -1212,6 +1296,257 @@ export default function ProviderGearSection({
                                     focus:bg-white
                                 "
                             />
+
+                        </div>
+
+
+                        {/* IMAGE URLS */}
+
+                        <div
+                            className="
+                                md:col-span-2
+                                rounded-[24px]
+                                border
+                                border-[#e5ded2]
+                                bg-[#f8f5ed]
+                                p-5
+                                md:p-6
+                            "
+                        >
+
+                            <div
+                                className="
+                                    mb-5
+                                    flex
+                                    items-start
+                                    gap-3
+                                "
+                            >
+
+                                <div
+                                    className="
+                                        flex
+                                        h-10
+                                        w-10
+                                        shrink-0
+                                        items-center
+                                        justify-center
+                                        rounded-xl
+                                        bg-white
+                                        text-lg
+                                    "
+                                >
+                                    🖼️
+                                </div>
+
+
+                                <div>
+
+                                    <h4
+                                        className="
+                                            text-sm
+                                            font-black
+                                            text-[#34322d]
+                                        "
+                                    >
+                                        Gear Images
+                                    </h4>
+
+                                    <p
+                                        className="
+                                            mt-1
+                                            text-xs
+                                            leading-5
+                                            text-[#918b80]
+                                        "
+                                    >
+                                        Add one or more
+                                        direct image URLs
+                                        for this gear.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div className="space-y-4">
+
+                                {imageUrls.map(
+                                    (url, index) => (
+
+                                        <div
+                                            key={index}
+                                            className="
+                                                flex
+                                                flex-col
+                                                gap-2
+                                            "
+                                        >
+
+                                            <div
+                                                className="
+                                                    flex
+                                                    items-center
+                                                    justify-between
+                                                    gap-3
+                                                "
+                                            >
+
+                                                <label
+                                                    className="
+                                                        text-xs
+                                                        font-bold
+                                                        uppercase
+                                                        tracking-[0.12em]
+                                                        text-[#918b80]
+                                                    "
+                                                >
+                                                    Image{" "}
+                                                    {index + 1}
+                                                </label>
+
+
+                                                {imageUrls.length >
+                                                    1 && (
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            removeImageField(
+                                                                index
+                                                            )
+                                                        }
+                                                        className="
+                                                            text-xs
+                                                            font-bold
+                                                            text-[#b85d40]
+                                                            hover:underline
+                                                        "
+                                                    >
+                                                        Remove
+                                                    </button>
+
+                                                )}
+
+                                            </div>
+
+
+                                            <input
+                                                type="url"
+                                                value={url}
+                                                onChange={(e) =>
+                                                    updateImageUrl(
+                                                        index,
+                                                        e.target.value
+                                                    )
+                                                }
+                                                placeholder="https://example.com/your-gear-image.jpg"
+                                                className="
+                                                    w-full
+                                                    rounded-2xl
+                                                    border
+                                                    border-[#ddd7cb]
+                                                    bg-white
+                                                    px-4
+                                                    py-3
+                                                    text-sm
+                                                    outline-none
+                                                    transition
+                                                    focus:border-[#dc7755]
+                                                    focus:ring-2
+                                                    focus:ring-[#dc7755]/10
+                                                "
+                                            />
+
+
+                                            {url.trim() && (
+
+                                                <div
+                                                    className="
+                                                        mt-1
+                                                        overflow-hidden
+                                                        rounded-2xl
+                                                        border
+                                                        border-[#e5ded2]
+                                                        bg-white
+                                                    "
+                                                >
+
+                                                    <div
+                                                        className="
+                                                            aspect-[16/7]
+                                                            bg-[#eeeadf]
+                                                        "
+                                                    >
+
+                                                        <img
+                                                            src={url}
+                                                            alt={`Preview of gear image ${index + 1}`}
+                                                            className="
+                                                                h-full
+                                                                w-full
+                                                                object-cover
+                                                            "
+                                                            onError={(
+                                                                e
+                                                            ) => {
+
+                                                                e.currentTarget.style.display =
+                                                                    "none";
+
+                                                            }}
+                                                        />
+
+                                                    </div>
+
+                                                </div>
+
+                                            )}
+
+                                        </div>
+
+                                    )
+                                )}
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                onClick={
+                                    addImageField
+                                }
+                                className="
+                                    mt-5
+                                    rounded-full
+                                    border
+                                    border-[#ddd7cb]
+                                    bg-white
+                                    px-5
+                                    py-2.5
+                                    text-sm
+                                    font-bold
+                                    text-[#4e4a42]
+                                    transition
+                                    hover:border-[#dc7755]
+                                    hover:text-[#dc7755]
+                                "
+                            >
+                                + Add another image
+                            </button>
+
+
+                            <p
+                                className="
+                                    mt-3
+                                    text-xs
+                                    leading-5
+                                    text-[#918b80]
+                                "
+                            >
+                                Example: https://images.example.com/backpack.jpg
+                            </p>
 
                         </div>
 
