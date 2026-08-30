@@ -1,20 +1,32 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 type GearProps = {
     gear: any;
 };
 
+const FALLBACK_IMAGE =
+    "https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=1200&auto=format&fit=crop";
+
 export default function GearCard({
     gear,
 }: GearProps) {
-    const imageUrl =
-        gear?.imageUrls?.[0];
 
-    const hasImage =
-        typeof imageUrl === "string" &&
-        imageUrl.trim().length > 0 &&
-        !imageUrl.includes("example.com");
+    const originalImage =
+        typeof gear?.imageUrls?.[0] === "string"
+            ? gear.imageUrls[0].trim()
+            : "";
+
+    const [imageSrc, setImageSrc] =
+        useState<string>(
+            originalImage || FALLBACK_IMAGE
+        );
+
+    const [imageFailed, setImageFailed] =
+        useState(false);
 
     const providerName =
         gear?.provider?.name ||
@@ -24,7 +36,22 @@ export default function GearCard({
     const price =
         Number(gear?.pricePerDay || 0);
 
+
+    function handleImageError() {
+
+        if (imageSrc !== FALLBACK_IMAGE) {
+
+            setImageSrc(FALLBACK_IMAGE);
+
+            return;
+        }
+
+        setImageFailed(true);
+    }
+
+
     return (
+
         <article
             className="
                 group
@@ -40,6 +67,7 @@ export default function GearCard({
                 hover:shadow-[0_14px_35px_rgba(33,31,26,0.12)]
             "
         >
+
             {/* IMAGE */}
 
             <Link
@@ -53,20 +81,25 @@ export default function GearCard({
                     bg-[#eeeade]
                 "
             >
-                {hasImage ? (
+
+                {!imageFailed ? (
+
                     <Image
-                        src={imageUrl}
+                        src={imageSrc}
                         alt={
                             gear?.name ||
                             "Gear"
                         }
                         fill
-                        priority
+                        unoptimized
                         sizes="
                             (max-width: 768px) 100vw,
                             (max-width: 1200px) 50vw,
                             33vw
                         "
+                        onError={
+                            handleImageError
+                        }
                         className="
                             object-cover
                             transition-transform
@@ -74,7 +107,9 @@ export default function GearCard({
                             group-hover:scale-[1.03]
                         "
                     />
+
                 ) : (
+
                     <div
                         className="
                             flex
@@ -82,13 +117,16 @@ export default function GearCard({
                             w-full
                             items-center
                             justify-center
+                            bg-[#eeeade]
                         "
                     >
+
                         <div
                             className="
                                 text-center
                             "
                         >
+
                             <div
                                 className="
                                     mx-auto
@@ -103,6 +141,7 @@ export default function GearCard({
                                     shadow-sm
                                 "
                             >
+
                                 <svg
                                     width="22"
                                     height="22"
@@ -113,6 +152,7 @@ export default function GearCard({
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                 >
+
                                     <rect
                                         x="3"
                                         y="3"
@@ -120,16 +160,21 @@ export default function GearCard({
                                         height="18"
                                         rx="2"
                                     />
+
                                     <circle
                                         cx="8.5"
                                         cy="8.5"
                                         r="1.5"
                                     />
+
                                     <path
                                         d="m21 15-5-5L5 21"
                                     />
+
                                 </svg>
+
                             </div>
+
 
                             <p
                                 className="
@@ -139,12 +184,17 @@ export default function GearCard({
                                     text-[#918b80]
                                 "
                             >
-                                No image available
+                                Image unavailable
                             </p>
+
                         </div>
+
                     </div>
+
                 )}
+
             </Link>
+
 
             {/* CONTENT */}
 
@@ -154,10 +204,12 @@ export default function GearCard({
                     sm:p-6
                 "
             >
+
                 <Link
                     href={`/gear/${gear.id}`}
                     className="block"
                 >
+
                     <h2
                         className="
                             text-xl
@@ -169,10 +221,14 @@ export default function GearCard({
                             group-hover:text-[#bd5f3f]
                         "
                     >
+
                         {gear?.name ||
                             "Untitled Gear"}
+
                     </h2>
+
                 </Link>
+
 
                 <p
                     className="
@@ -181,8 +237,11 @@ export default function GearCard({
                         text-[#827b6d]
                     "
                 >
+
                     {providerName}
+
                 </p>
+
 
                 <div
                     className="
@@ -193,7 +252,9 @@ export default function GearCard({
                         gap-3
                     "
                 >
+
                     <div>
+
                         <span
                             className="
                                 text-xl
@@ -204,6 +265,7 @@ export default function GearCard({
                             ${price}
                         </span>
 
+
                         <span
                             className="
                                 ml-1
@@ -213,7 +275,9 @@ export default function GearCard({
                         >
                             /day
                         </span>
+
                     </div>
+
 
                     <Link
                         href={`/gear/${gear.id}`}
@@ -234,8 +298,12 @@ export default function GearCard({
                     >
                         View Details
                     </Link>
+
                 </div>
+
             </div>
+
         </article>
+
     );
 }
