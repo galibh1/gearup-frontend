@@ -289,10 +289,7 @@ export default function RentalForm({
         getTomorrow();
 
 
-    /*
-     * Once a start date is selected, the end date
-     * cannot be the same day or earlier.
-     */
+   
     const minimumEndDate =
         startDate
             ? addDays(
