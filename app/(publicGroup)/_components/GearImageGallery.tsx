@@ -27,26 +27,24 @@ export default function GearImageGallery({
             image.trim().length > 0
     );
 
+    const actualImages =
+        validImages.length > 0
+            ? validImages
+            : [FALLBACK_IMAGE];
+
     const [selectedIndex, setSelectedIndex] =
         useState(0);
 
     const [failedImages, setFailedImages] =
         useState<Set<number>>(new Set());
 
-    const actualImages =
-        validImages.length > 0
-            ? validImages
-            : [FALLBACK_IMAGE];
-
-    const currentIndex =
-        Math.min(
-            selectedIndex,
-            actualImages.length - 1
-        );
+    const currentIndex = Math.min(
+        selectedIndex,
+        actualImages.length - 1
+    );
 
     const currentImage =
         actualImages[currentIndex];
-
 
     function markImageFailed(index: number) {
 
@@ -57,10 +55,10 @@ export default function GearImageGallery({
             next.add(index);
 
             return next;
+
         });
 
     }
-
 
     function previousImage() {
 
@@ -73,8 +71,8 @@ export default function GearImageGallery({
                 ? actualImages.length - 1
                 : current - 1
         );
-    }
 
+    }
 
     function nextImage() {
 
@@ -87,8 +85,8 @@ export default function GearImageGallery({
                 ? 0
                 : current + 1
         );
-    }
 
+    }
 
     const currentImageFailed =
         failedImages.has(currentIndex);
@@ -97,7 +95,10 @@ export default function GearImageGallery({
     return (
         <div className="absolute inset-0">
 
-            {/* MAIN IMAGE */}
+
+            {/* =================================================
+                MAIN IMAGE
+            ================================================= */}
 
             <div className="absolute inset-0">
 
@@ -109,11 +110,9 @@ export default function GearImageGallery({
                         fill
                         priority
                         unoptimized
-                        sizes="(max-width: 1024px) 100vw, 50vw"
+                        sizes="(max-width: 1024px) 100vw, 45vw"
                         onError={() =>
-                            markImageFailed(
-                                currentIndex
-                            )
+                            markImageFailed(currentIndex)
                         }
                         className="object-cover"
                     />
@@ -124,15 +123,13 @@ export default function GearImageGallery({
 
                         <div className="text-center">
 
-                            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-[#918b80] shadow-sm">
+                            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-white text-[#918b80] shadow-sm">
 
-                                <ImageIcon
-                                    size={28}
-                                />
+                                <ImageIcon size={24} />
 
                             </div>
 
-                            <p className="mt-4 text-sm font-semibold text-[#918b80]">
+                            <p className="mt-3 text-xs font-semibold text-[#918b80]">
                                 Image unavailable
                             </p>
 
@@ -145,7 +142,9 @@ export default function GearImageGallery({
             </div>
 
 
-            {/* PREVIOUS */}
+            {/* =================================================
+                PREVIOUS BUTTON
+            ================================================= */}
 
             {actualImages.length > 1 && (
 
@@ -155,19 +154,19 @@ export default function GearImageGallery({
                     onClick={previousImage}
                     className="
                         absolute
-                        left-4
+                        left-3
                         top-1/2
                         z-20
                         flex
-                        h-10
-                        w-10
+                        h-9
+                        w-9
                         -translate-y-1/2
                         items-center
                         justify-center
                         rounded-full
                         border
                         border-white/30
-                        bg-black/35
+                        bg-black/30
                         text-white
                         backdrop-blur
                         transition
@@ -175,16 +174,16 @@ export default function GearImageGallery({
                     "
                 >
 
-                    <ChevronLeft
-                        className="h-5 w-5"
-                    />
+                    <ChevronLeft className="h-4 w-4" />
 
                 </button>
 
             )}
 
 
-            {/* NEXT */}
+            {/* =================================================
+                NEXT BUTTON
+            ================================================= */}
 
             {actualImages.length > 1 && (
 
@@ -194,19 +193,19 @@ export default function GearImageGallery({
                     onClick={nextImage}
                     className="
                         absolute
-                        right-4
+                        right-3
                         top-1/2
                         z-20
                         flex
-                        h-10
-                        w-10
+                        h-9
+                        w-9
                         -translate-y-1/2
                         items-center
                         justify-center
                         rounded-full
                         border
                         border-white/30
-                        bg-black/35
+                        bg-black/30
                         text-white
                         backdrop-blur
                         transition
@@ -214,30 +213,28 @@ export default function GearImageGallery({
                     "
                 >
 
-                    <ChevronRight
-                        className="h-5 w-5"
-                    />
+                    <ChevronRight className="h-4 w-4" />
 
                 </button>
 
             )}
 
 
-            {/* THUMBNAILS */}
+            {/* =================================================
+                THUMBNAILS
+            ================================================= */}
 
             {actualImages.length > 1 && (
 
-                <div className="absolute left-0 right-0 top-4 z-20 flex justify-center px-4">
+                <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center px-3">
 
-                    <div className="flex max-w-full gap-2 overflow-x-auto rounded-2xl border border-white/20 bg-black/25 p-2 backdrop-blur-md">
+                    <div className="flex max-w-full gap-1.5 overflow-x-auto rounded-xl border border-white/20 bg-black/25 p-1.5 backdrop-blur-md">
 
                         {actualImages.map(
                             (image, index) => {
 
                                 const failed =
-                                    failedImages.has(
-                                        index
-                                    );
+                                    failedImages.has(index);
 
                                 return (
 
@@ -252,19 +249,18 @@ export default function GearImageGallery({
                                         }
                                         className={`
                                             relative
-                                            h-14
-                                            w-14
+                                            h-11
+                                            w-11
                                             shrink-0
                                             overflow-hidden
-                                            rounded-xl
+                                            rounded-lg
                                             border-2
                                             transition
-                                            sm:h-16
-                                            sm:w-16
+                                            sm:h-12
+                                            sm:w-12
                                             ${
-                                                index ===
-                                                currentIndex
-                                                    ? "border-white scale-105"
+                                                index === currentIndex
+                                                    ? "scale-105 border-white"
                                                     : "border-white/30 opacity-75 hover:opacity-100"
                                             }
                                         `}
@@ -277,7 +273,7 @@ export default function GearImageGallery({
                                                 alt={`${alt} thumbnail ${index + 1}`}
                                                 fill
                                                 unoptimized
-                                                sizes="64px"
+                                                sizes="48px"
                                                 onError={() =>
                                                     markImageFailed(
                                                         index
@@ -291,7 +287,7 @@ export default function GearImageGallery({
                                             <div className="flex h-full w-full items-center justify-center bg-[#e7e3d8] text-[#918b80]">
 
                                                 <ImageIcon
-                                                    size={18}
+                                                    size={15}
                                                 />
 
                                             </div>
@@ -301,6 +297,7 @@ export default function GearImageGallery({
                                     </button>
 
                                 );
+
                             }
                         )}
 
@@ -311,11 +308,13 @@ export default function GearImageGallery({
             )}
 
 
-            {/* IMAGE COUNTER */}
+            {/* =================================================
+                IMAGE COUNTER
+            ================================================= */}
 
             {actualImages.length > 1 && (
 
-                <div className="absolute bottom-20 right-5 z-20 rounded-full bg-black/45 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">
+                <div className="absolute right-3 top-3 z-20 rounded-full bg-black/45 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur">
 
                     {currentIndex + 1} /{" "}
                     {actualImages.length}
