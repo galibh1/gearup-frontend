@@ -2,7 +2,7 @@
 
 GearUp is an equipment rental platform built with Next.js, TypeScript, and a REST API backend. The frontend provides separate experiences for customers, providers, and administrators.
 
-> [GearUp Frontned Live link](https://gearup-frontend-opal-nine.vercel.app).
+> [GearUp Frontend Live link](https://gearup-frontend-opal-nine.vercel.app).
 
 ## Features
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { addDays, startOfDay } from "date-fns";
 
 import { createRental } from "../_actions/rental.actions";
 
@@ -34,42 +35,106 @@ export default function RentalForm({
 
 
     /*
-     * Rentals cannot start today because the backend
-     * requires the rental start date to be in the future.
+     * Backend requires rental dates to be in the future.
+     * Therefore today and all previous dates are disabled.
      */
-    function getTomorrow() {
+    function getTomorrow(): Date {
 
-        const tomorrow = new Date();
-
-        tomorrow.setHours(0, 0, 0, 0);
-
-        tomorrow.setDate(
-            tomorrow.getDate() + 1
+        return addDays(
+            startOfDay(new Date()),
+            1
         );
-
-        return tomorrow;
 
     }
 
 
-    function isTodayOrPast(date: Date) {
+    /*
+     * Extra protection in case a date somehow gets
+     * selected programmatically.
+     */
+    function isTodayOrPast(
+        date: Date
+    ): boolean {
 
         const selected =
-            new Date(date);
-
-        selected.setHours(
-            0,
-            0,
-            0,
-            0
-        );
-
+            startOfDay(date);
 
         const tomorrow =
             getTomorrow();
 
-
         return selected < tomorrow;
+
+    }
+
+
+    /*
+     * When the start date changes, make sure an old
+     * end date is not kept accidentally.
+     */
+    function handleStartDateChange(
+        date?: Date
+    ) {
+
+        setStartDate(date);
+
+
+        if (
+            date &&
+            endDate &&
+            startOfDay(endDate) <=
+                startOfDay(date)
+        ) {
+
+            setEndDate(undefined);
+
+        }
+
+    }
+
+
+    /*
+     * End date must be after the selected start date.
+     */
+    function handleEndDateChange(
+        date?: Date
+    ) {
+
+        if (!date) {
+
+            setEndDate(undefined);
+
+            return;
+
+        }
+
+
+        if (isTodayOrPast(date)) {
+
+            toast.error(
+                "Please select a future end date."
+            );
+
+            return;
+
+        }
+
+
+        if (
+            startDate &&
+            startOfDay(date) <=
+                startOfDay(startDate)
+        ) {
+
+            toast.error(
+                "End date must be after the start date."
+            );
+
+            return;
+
+        }
+
+
+        setEndDate(date);
 
     }
 
@@ -79,7 +144,7 @@ export default function RentalForm({
         if (!startDate || !endDate) {
 
             toast.error(
-                "Please select start and end dates."
+                "Please select both start and end dates."
             );
 
             return;
@@ -88,7 +153,7 @@ export default function RentalForm({
 
 
         /*
-         * Prevent today's date and previous dates.
+         * Prevent today and previous dates.
          */
         if (isTodayOrPast(startDate)) {
 
@@ -112,31 +177,16 @@ export default function RentalForm({
         }
 
 
-        /*
-         * End date must be after start date.
-         */
         const start =
-            new Date(startDate);
+            startOfDay(startDate);
 
         const end =
-            new Date(endDate);
+            startOfDay(endDate);
 
 
-        start.setHours(
-            0,
-            0,
-            0,
-            0
-        );
-
-        end.setHours(
-            0,
-            0,
-            0,
-            0
-        );
-
-
+        /*
+         * End date must be later than start date.
+         */
         if (end <= start) {
 
             toast.error(
@@ -164,13 +214,6 @@ export default function RentalForm({
             setLoading(true);
 
 
-            /*
-             * Keep the selected calendar date exactly as chosen.
-             *
-             * The existing backend expects the ISO date format.
-             * The DatePicker already produces the correct local
-             * calendar date, so we send its ISO representation.
-             */
             const result =
                 await createRental({
 
@@ -242,6 +285,23 @@ export default function RentalForm({
     }
 
 
+    const tomorrow =
+        getTomorrow();
+
+
+    /*
+     * Once a start date is selected, the end date
+     * cannot be the same day or earlier.
+     */
+    const minimumEndDate =
+        startDate
+            ? addDays(
+                startOfDay(startDate),
+                1
+            )
+            : tomorrow;
+
+
     return (
 
         <div>
@@ -249,17 +309,22 @@ export default function RentalForm({
             <div
                 className="
                     grid
-                    md:grid-cols-2
                     gap-5
+                    md:grid-cols-2
                 "
             >
+
+                {/* ================= START DATE ================= */}
 
                 <div>
 
                     <label
                         className="
-                            block
                             mb-2
+                            block
+                            text-sm
+                            font-medium
+                            text-[#514d45]
                         "
                     >
                         Start Date
@@ -268,18 +333,38 @@ export default function RentalForm({
 
                     <DatePicker
                         value={startDate}
-                        onChange={setStartDate}
+                        onChange={
+                            handleStartDateChange
+                        }
+                        minDate={tomorrow}
+                        disabled={loading}
                     />
+
+
+                    <p
+                        className="
+                            mt-2
+                            text-[11px]
+                            text-[#918b80]
+                        "
+                    >
+                        Rentals can start from tomorrow.
+                    </p>
 
                 </div>
 
+
+                {/* ================= END DATE ================= */}
 
                 <div>
 
                     <label
                         className="
-                            block
                             mb-2
+                            block
+                            text-sm
+                            font-medium
+                            text-[#514d45]
                         "
                     >
                         End Date
@@ -288,29 +373,83 @@ export default function RentalForm({
 
                     <DatePicker
                         value={endDate}
-                        onChange={setEndDate}
+                        onChange={
+                            handleEndDateChange
+                        }
+                        minDate={
+                            minimumEndDate
+                        }
+                        disabled={loading}
                     />
+
+
+                    <p
+                        className="
+                            mt-2
+                            text-[11px]
+                            text-[#918b80]
+                        "
+                    >
+                        End date must be after the start date.
+                    </p>
 
                 </div>
 
             </div>
 
 
+            {/* ================= SUMMARY ================= */}
+
+            {startDate && endDate && (
+
+                <div
+                    className="
+                        mt-5
+                        rounded-xl
+                        border
+                        border-[#dce4d7]
+                        bg-[#f1f4ed]
+                        px-4
+                        py-3
+                    "
+                >
+
+                    <p className="text-xs font-semibold text-[#4f5d47]">
+                        Rental period selected
+                    </p>
+
+                    <p className="mt-1 text-sm text-[#66765a]">
+                        {startDate.toLocaleDateString()}{" "}
+                        →{" "}
+                        {endDate.toLocaleDateString()}
+                    </p>
+
+                </div>
+
+            )}
+
+
+            {/* ================= RENT BUTTON ================= */}
+
             <button
                 type="button"
                 onClick={handleRental}
-                disabled={loading}
+                disabled={
+                    loading ||
+                    !startDate ||
+                    !endDate
+                }
                 className="
                     mt-8
+                    rounded-xl
                     bg-black
-                    text-white
                     px-8
                     py-3
-                    rounded-xl
-                    hover:bg-gray-800
+                    text-white
                     transition
-                    disabled:opacity-50
+                    hover:bg-gray-800
                     disabled:cursor-not-allowed
+                    disabled:opacity-50
                 "
             >
 
@@ -324,5 +463,4 @@ export default function RentalForm({
         </div>
 
     );
-
 }

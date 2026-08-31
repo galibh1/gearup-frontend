@@ -1,109 +1,155 @@
 "use client";
 
-
 import * as React from "react";
+import { CalendarIcon } from "lucide-react";
+import { format, isBefore, startOfDay } from "date-fns";
 
-import {CalendarIcon} from "lucide-react";
-
-import {format} from "date-fns";
-
-import {Button} from "@/components/ui/button";
-
-import {Calendar} from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 
 import {
-Popover,
-PopoverContent,
-PopoverTrigger
-}
-from "@/components/ui/popover";
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 
 
+type DatePickerProps = {
+    value?: Date;
+
+    onChange: (
+        date?: Date
+    ) => void;
+
+    minDate?: Date;
+
+    disabled?:
+        | boolean
+        | ((date: Date) => boolean);
+};
 
 
 export default function DatePicker({
+    value,
+    onChange,
+    minDate,
+    disabled,
+}: DatePickerProps) {
 
-value,
+    /*
+     * Combine the minimum-date restriction with
+     * any existing disabled rule.
+     */
+    const disabledDate = React.useMemo(() => {
 
-onChange
-
-}:{
-
-value?:Date;
-
-onChange:(date?:Date)=>void;
-
-}){
-
-
-return (
-
-<Popover>
-
-
-<PopoverTrigger asChild>
+        if (
+            !minDate &&
+            !disabled
+        ) {
+            return undefined;
+        }
 
 
-<Button
+        return (date: Date) => {
 
-variant="outline"
-
-className="
-w-full
-justify-start
-"
-
->
-
-
-<CalendarIcon className="mr-2 h-4 w-4"/>
-
-
-{
-
-value
-
-?
-
-format(value,"PPP")
-
-:
-
-"Pick a date"
-
-}
+            /*
+             * Disable dates before minDate.
+             */
+            if (
+                minDate &&
+                isBefore(
+                    startOfDay(date),
+                    startOfDay(minDate)
+                )
+            ) {
+                return true;
+            }
 
 
-</Button>
+            /*
+             * Support boolean disabled.
+             */
+            if (
+                typeof disabled ===
+                "boolean"
+            ) {
+                return disabled;
+            }
 
 
-</PopoverTrigger>
+            /*
+             * Support function-based disabled.
+             */
+            if (
+                typeof disabled ===
+                "function"
+            ) {
+                return disabled(date);
+            }
 
 
+            return false;
+        };
+
+    }, [
+        minDate,
+        disabled,
+    ]);
 
 
-<PopoverContent>
+    return (
+        <Popover>
+
+            <PopoverTrigger asChild>
+
+                <Button
+                    variant="outline"
+                    className="
+                        w-full
+                        justify-start
+                        text-left
+                        font-normal
+                    "
+                >
+
+                    <CalendarIcon
+                        className="
+                            mr-2
+                            h-4
+                            w-4
+                        "
+                    />
+
+                    {value
+                        ? format(
+                            value,
+                            "PPP"
+                        )
+                        : "Pick a date"
+                    }
+
+                </Button>
+
+            </PopoverTrigger>
 
 
-<Calendar
+            <PopoverContent
+                className="
+                    w-auto
+                    p-0
+                "
+                align="start"
+            >
 
-mode="single"
+                <Calendar
+                    mode="single"
+                    selected={value}
+                    onSelect={onChange}
+                    disabled={disabledDate}
+                />
 
-selected={value}
+            </PopoverContent>
 
-onSelect={onChange}
-
-/>
-
-
-</PopoverContent>
-
-
-
-
-</Popover>
-
-);
-
-
+        </Popover>
+    );
 }

@@ -27,9 +27,32 @@ type Gear = {
 
     availableQuantity?: number;
 
+    availableStock?: number;
+
+    status?: string;
+
+    availability?: string;
+
     provider?: {
         name?: string;
     };
+
+    /*
+     * These fields allow the filter to work with
+     * availability information if the backend provides it.
+     */
+    unavailableDates?: string[];
+
+    bookings?: Array<{
+        startDate?: string;
+        endDate?: string;
+    }>;
+
+    rentals?: Array<{
+        startDate?: string;
+        endDate?: string;
+        status?: string;
+    }>;
 
     [key: string]: unknown;
 };
@@ -37,6 +60,17 @@ type Gear = {
 
 type GearBrowserProps = {
     gears: Gear[];
+};
+
+
+type AppliedFilters = {
+    search: string;
+    brand: string;
+    category: string;
+    minPrice: string;
+    maxPrice: string;
+    startDate: string;
+    endDate: string;
 };
 
 
@@ -59,18 +93,28 @@ export default function GearBrowser({
     const [maxPrice, setMaxPrice] =
         useState("");
 
+    const [startDate, setStartDate] =
+        useState("");
+
+    const [endDate, setEndDate] =
+        useState("");
+
 
     const [appliedFilters, setAppliedFilters] =
-        useState({
+        useState<AppliedFilters>({
             search: "",
             brand: "",
             category: "all",
             minPrice: "",
             maxPrice: "",
+            startDate: "",
+            endDate: "",
         });
 
 
-    
+    // =========================================================
+    // HELPERS
+    // =========================================================
 
     function getCategory(
         gear: Gear
@@ -124,9 +168,305 @@ export default function GearBrowser({
     }
 
 
-    /* =========================================================
-       CATEGORIES
-    ========================================================= */
+    function getTodayString() {
+
+        const today =
+            new Date();
+
+        const year =
+            today.getFullYear();
+
+        const month =
+            String(
+                today.getMonth() + 1
+            ).padStart(2, "0");
+
+        const day =
+            String(
+                today.getDate()
+            ).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+
+    }
+
+
+    /*
+     * Check whether two date ranges overlap.
+     */
+    function rangesOverlap(
+        requestedStart: string,
+        requestedEnd: string,
+        existingStart: string,
+        existingEnd: string
+    ) {
+
+        return (
+            requestedStart <= existingEnd &&
+            requestedEnd >= existingStart
+        );
+
+    }
+
+
+    /*
+     * Determine whether a gear item is available
+     * for the requested date range.
+     *
+     * If the backend does not provide booking/rental
+     * date information, the current stock/status is used.
+     */
+    function isGearAvailableForDates(
+        gear: Gear,
+        requestedStart: string,
+        requestedEnd: string
+    ): boolean {
+
+        if (
+            !requestedStart &&
+            !requestedEnd
+        ) {
+            return true;
+        }
+
+
+        if (
+            !requestedStart ||
+            !requestedEnd
+        ) {
+            return true;
+        }
+
+
+        if (
+            requestedEnd <
+            requestedStart
+        ) {
+            return false;
+        }
+
+
+        /*
+         * If there is an explicit unavailableDates
+         * array, reject the gear if any requested date
+         * appears in it.
+         */
+        if (
+            Array.isArray(
+                gear.unavailableDates
+            ) &&
+            gear.unavailableDates.length > 0
+        ) {
+
+            const current =
+                new Date(
+                    `${requestedStart}T00:00:00`
+                );
+
+            const end =
+                new Date(
+                    `${requestedEnd}T00:00:00`
+                );
+
+
+            while (
+                current <= end
+            ) {
+
+                const year =
+                    current.getFullYear();
+
+                const month =
+                    String(
+                        current.getMonth() + 1
+                    ).padStart(2, "0");
+
+                const day =
+                    String(
+                        current.getDate()
+                    ).padStart(2, "0");
+
+                const dateString =
+                    `${year}-${month}-${day}`;
+
+
+                if (
+                    gear.unavailableDates.some(
+                        (date) =>
+                            date.startsWith(
+                                dateString
+                            )
+                    )
+                ) {
+
+                    return false;
+
+                }
+
+
+                current.setDate(
+                    current.getDate() + 1
+                );
+
+            }
+
+        }
+
+
+        /*
+         * Check bookings returned by the backend.
+         */
+        if (
+            Array.isArray(
+                gear.bookings
+            )
+        ) {
+
+            for (
+                const booking
+                of gear.bookings
+            ) {
+
+                if (
+                    !booking.startDate ||
+                    !booking.endDate
+                ) {
+                    continue;
+                }
+
+
+                if (
+                    rangesOverlap(
+                        requestedStart,
+                        requestedEnd,
+                        booking.startDate.slice(
+                            0,
+                            10
+                        ),
+                        booking.endDate.slice(
+                            0,
+                            10
+                        )
+                    )
+                ) {
+
+                    return false;
+
+                }
+
+            }
+
+        }
+
+
+        /*
+         * Check rentals returned by the backend.
+         *
+         * Cancelled rentals do not block availability.
+         */
+        if (
+            Array.isArray(
+                gear.rentals
+            )
+        ) {
+
+            for (
+                const rental
+                of gear.rentals
+            ) {
+
+                if (
+                    !rental.startDate ||
+                    !rental.endDate
+                ) {
+                    continue;
+                }
+
+
+                if (
+                    rental.status ===
+                    "CANCELLED"
+                ) {
+                    continue;
+                }
+
+
+                if (
+                    rangesOverlap(
+                        requestedStart,
+                        requestedEnd,
+                        rental.startDate.slice(
+                            0,
+                            10
+                        ),
+                        rental.endDate.slice(
+                            0,
+                            10
+                        )
+                    )
+                ) {
+
+                    return false;
+
+                }
+
+            }
+
+        }
+
+
+        /*
+         * If explicit stock/status information says
+         * there is currently no inventory, do not show
+         * it as available.
+         */
+        const availableStock =
+            Number(
+                gear.availableStock ??
+                gear.availableQuantity ??
+                gear.quantity ??
+                gear.stock ??
+                0
+            );
+
+
+        const status =
+            String(
+                gear.status ||
+                gear.availability ||
+                ""
+            ).toUpperCase();
+
+
+        if (
+            status === "UNAVAILABLE" ||
+            status === "OUT_OF_STOCK" ||
+            status === "INACTIVE"
+        ) {
+
+            return false;
+
+        }
+
+
+        if (
+            gear.availableStock !== undefined &&
+            availableStock <= 0
+        ) {
+
+            return false;
+
+        }
+
+
+        return true;
+
+    }
+
+
+    // =========================================================
+    // CATEGORIES
+    // =========================================================
 
     const categories =
         useMemo(() => {
@@ -146,7 +486,9 @@ export default function GearBrowser({
         }, [gears]);
 
 
-  
+    // =========================================================
+    // FILTERED GEAR
+    // =========================================================
 
     const filteredGears =
         useMemo(() => {
@@ -243,12 +585,21 @@ export default function GearBrowser({
                         price <= maximum;
 
 
+                    const matchesDates =
+                        isGearAvailableForDates(
+                            gear,
+                            appliedFilters.startDate,
+                            appliedFilters.endDate
+                        );
+
+
                     return (
                         matchesSearch &&
                         matchesBrand &&
                         matchesCategory &&
                         matchesMinimum &&
-                        matchesMaximum
+                        matchesMaximum &&
+                        matchesDates
                     );
 
                 }
@@ -260,9 +611,22 @@ export default function GearBrowser({
         ]);
 
 
-   
+    // =========================================================
+    // APPLY FILTERS
+    // =========================================================
 
     function applyFilters() {
+
+        if (
+            startDate &&
+            endDate &&
+            endDate < startDate
+        ) {
+
+            return;
+
+        }
+
 
         setAppliedFilters({
             search,
@@ -270,12 +634,16 @@ export default function GearBrowser({
             category,
             minPrice,
             maxPrice,
+            startDate,
+            endDate,
         });
 
     }
 
 
-   
+    // =========================================================
+    // RESET FILTERS
+    // =========================================================
 
     function resetFilters() {
 
@@ -289,6 +657,10 @@ export default function GearBrowser({
 
         setMaxPrice("");
 
+        setStartDate("");
+
+        setEndDate("");
+
 
         setAppliedFilters({
             search: "",
@@ -296,12 +668,16 @@ export default function GearBrowser({
             category: "all",
             minPrice: "",
             maxPrice: "",
+            startDate: "",
+            endDate: "",
         });
 
     }
 
 
-   
+    // =========================================================
+    // SEARCH ENTER
+    // =========================================================
 
     function handleSearchKeyDown(
         event: React.KeyboardEvent<HTMLInputElement>
@@ -317,6 +693,10 @@ export default function GearBrowser({
 
     }
 
+
+    // =========================================================
+    // RENDER
+    // =========================================================
 
     return (
 
@@ -354,8 +734,6 @@ export default function GearBrowser({
                     "
                 >
 
-                    {/* Search Icon */}
-
                     <svg
                         width="21"
                         height="21"
@@ -385,8 +763,6 @@ export default function GearBrowser({
                     </svg>
 
 
-                    {/* Input */}
-
                     <input
                         type="text"
                         value={search}
@@ -410,8 +786,6 @@ export default function GearBrowser({
                         "
                     />
 
-
-                    {/* Search */}
 
                     <button
                         type="button"
@@ -444,9 +818,7 @@ export default function GearBrowser({
             </div>
 
 
-            {/* =====================================================
-                MOBILE SEARCH BUTTON
-            ===================================================== */}
+            {/* MOBILE SEARCH */}
 
             <button
                 type="button"
@@ -533,7 +905,7 @@ export default function GearBrowser({
                     </div>
 
 
-                    {/* Brand */}
+                    {/* BRAND */}
 
                     <div className="mt-6">
 
@@ -581,7 +953,7 @@ export default function GearBrowser({
                     </div>
 
 
-                    {/* Category */}
+                    {/* CATEGORY */}
 
                     <div className="mt-5">
 
@@ -648,7 +1020,7 @@ export default function GearBrowser({
                     </div>
 
 
-                    {/* Minimum */}
+                    {/* MINIMUM PRICE */}
 
                     <div className="mt-5">
 
@@ -697,7 +1069,7 @@ export default function GearBrowser({
                     </div>
 
 
-                    {/* Maximum */}
+                    {/* MAXIMUM PRICE */}
 
                     <div className="mt-5">
 
@@ -746,7 +1118,154 @@ export default function GearBrowser({
                     </div>
 
 
-                    {/* Buttons */}
+                    {/* =================================================
+                        AVAILABILITY DATES
+                    ================================================= */}
+
+                    <div
+                        className="
+                            mt-5
+                            border-t
+                            border-black/[0.07]
+                            pt-5
+                        "
+                    >
+
+                        <p
+                            className="
+                                mb-3
+                                text-sm
+                                font-semibold
+                                text-[#302d27]
+                            "
+                        >
+                            Availability Dates
+                        </p>
+
+
+                        {/* START DATE */}
+
+                        <div>
+
+                            <label
+                                htmlFor="gear-start-date"
+                                className="
+                                    mb-2
+                                    block
+                                    text-xs
+                                    font-medium
+                                    text-[#777064]
+                                "
+                            >
+                                Available From
+                            </label>
+
+
+                            <input
+                                id="gear-start-date"
+                                type="date"
+                                min={getTodayString()}
+                                value={startDate}
+                                onChange={(event) =>
+                                    setStartDate(
+                                        event.target.value
+                                    )
+                                }
+                                className="
+                                    h-11
+                                    w-full
+                                    rounded-xl
+                                    border
+                                    border-black/[0.09]
+                                    bg-white
+                                    px-3
+                                    text-sm
+                                    text-[#514d45]
+                                    outline-none
+                                    transition
+                                    focus:border-[#d97757]
+                                    focus:ring-2
+                                    focus:ring-[#d97757]/10
+                                "
+                            />
+
+                        </div>
+
+
+                        {/* END DATE */}
+
+                        <div className="mt-4">
+
+                            <label
+                                htmlFor="gear-end-date"
+                                className="
+                                    mb-2
+                                    block
+                                    text-xs
+                                    font-medium
+                                    text-[#777064]
+                                "
+                            >
+                                Available Until
+                            </label>
+
+
+                            <input
+                                id="gear-end-date"
+                                type="date"
+                                min={
+                                    startDate ||
+                                    getTodayString()
+                                }
+                                value={endDate}
+                                onChange={(event) =>
+                                    setEndDate(
+                                        event.target.value
+                                    )
+                                }
+                                className="
+                                    h-11
+                                    w-full
+                                    rounded-xl
+                                    border
+                                    border-black/[0.09]
+                                    bg-white
+                                    px-3
+                                    text-sm
+                                    text-[#514d45]
+                                    outline-none
+                                    transition
+                                    focus:border-[#d97757]
+                                    focus:ring-2
+                                    focus:ring-[#d97757]/10
+                                "
+                            />
+
+                        </div>
+
+
+                        {startDate &&
+                            endDate &&
+                            endDate < startDate && (
+
+                            <p
+                                className="
+                                    mt-2
+                                    text-xs
+                                    font-medium
+                                    text-red-600
+                                "
+                            >
+                                End date must be after
+                                the start date.
+                            </p>
+
+                        )}
+
+                    </div>
+
+
+                    {/* BUTTONS */}
 
                     <div className="mt-6 space-y-2.5">
 
@@ -754,6 +1273,14 @@ export default function GearBrowser({
                             type="button"
                             onClick={
                                 applyFilters
+                            }
+                            disabled={
+                                Boolean(
+                                    startDate &&
+                                    endDate &&
+                                    endDate <
+                                    startDate
+                                )
                             }
                             className="
                                 h-11
@@ -765,6 +1292,8 @@ export default function GearBrowser({
                                 text-white
                                 transition
                                 hover:bg-[#35322c]
+                                disabled:cursor-not-allowed
+                                disabled:opacity-50
                             "
                         >
                             Apply Filters
@@ -806,7 +1335,7 @@ export default function GearBrowser({
                 <section className="min-w-0">
 
 
-                    {/* Header */}
+                    {/* HEADER */}
 
                     <div
                         className="
@@ -875,7 +1404,41 @@ export default function GearBrowser({
                     </div>
 
 
-                    {/* Cards */}
+                    {/* ACTIVE DATE FILTER */}
+
+                    {appliedFilters.startDate &&
+                        appliedFilters.endDate && (
+
+                        <div
+                            className="
+                                mt-4
+                                rounded-xl
+                                border
+                                border-[#dce4d7]
+                                bg-[#f1f4ed]
+                                px-4
+                                py-3
+                                text-xs
+                                font-medium
+                                text-[#4f5d47]
+                            "
+                        >
+
+                            Showing gear available from{" "}
+                            <strong>
+                                {appliedFilters.startDate}
+                            </strong>{" "}
+                            to{" "}
+                            <strong>
+                                {appliedFilters.endDate}
+                            </strong>
+
+                        </div>
+
+                    )}
+
+
+                    {/* CARDS */}
 
                     {filteredGears.length > 0 ? (
 
