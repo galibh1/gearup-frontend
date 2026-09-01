@@ -1,9 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import {
+    ChevronLeft,
+    ChevronRight,
+    Search,
+} from "lucide-react";
 
 import { changeUserStatus } from "../_actions/admin.actions";
 
@@ -24,24 +28,13 @@ export default function UserTable({
 }) {
     const router = useRouter();
 
+    const [search, setSearch] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
     const [loadingId, setLoadingId] =
         useState<string | null>(null);
 
-    const [search, setSearch] =
-        useState("");
-
-    const [currentPage, setCurrentPage] =
-        useState(1);
-
-    /*
-     * Frontend search.
-     *
-     * The current backend endpoint returns the complete
-     * user list and does not expose search parameters.
-     */
     const filteredUsers = useMemo(() => {
-        const query =
-            search.trim().toLowerCase();
+        const query = search.trim().toLowerCase();
 
         if (!query) {
             return users;
@@ -65,38 +58,32 @@ export default function UserTable({
         });
     }, [users, search]);
 
-    const totalPages =
-        Math.max(
-            1,
-            Math.ceil(
-                filteredUsers.length /
-                    USERS_PER_PAGE
-            )
+    const totalPages = Math.max(
+        1,
+        Math.ceil(
+            filteredUsers.length /
+                USERS_PER_PAGE
+        )
+    );
+
+    const paginatedUsers = useMemo(() => {
+        const start =
+            (currentPage - 1) *
+            USERS_PER_PAGE;
+
+        return filteredUsers.slice(
+            start,
+            start + USERS_PER_PAGE
         );
+    }, [filteredUsers, currentPage]);
 
-    /*
-     * Make sure the current page remains valid
-     * after searching or refreshing the users.
-     */
-    const safeCurrentPage =
-        Math.min(
-            currentPage,
-            totalPages
-        );
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
 
-    const startIndex =
-        (safeCurrentPage - 1) *
-        USERS_PER_PAGE;
-
-    const paginatedUsers =
-        filteredUsers.slice(
-            startIndex,
-            startIndex + USERS_PER_PAGE
-        );
-
-    function handleSearch(
-        value: string
-    ) {
+    function handleSearch(value: string) {
         setSearch(value);
         setCurrentPage(1);
     }
@@ -117,7 +104,7 @@ export default function UserTable({
             if (!result.success) {
                 toast.error(
                     result.message ||
-                    "Failed to update user status"
+                        "Failed to update user status"
                 );
 
                 return;
@@ -139,14 +126,34 @@ export default function UserTable({
         }
     }
 
+    const firstVisibleUser =
+        filteredUsers.length === 0
+            ? 0
+            : (currentPage - 1) *
+                  USERS_PER_PAGE +
+              1;
+
+    const lastVisibleUser =
+        Math.min(
+            currentPage *
+                USERS_PER_PAGE,
+            filteredUsers.length
+        );
+
+    const pageNumbers = Array.from(
+        { length: totalPages },
+        (_, index) => index + 1
+    );
+
     return (
         <div
             className="
                 rounded-2xl
                 border
                 bg-white
-                p-6
+                p-4
                 shadow-sm
+                sm:p-6
             "
         >
             {/* HEADER */}
@@ -170,7 +177,7 @@ export default function UserTable({
                             text-gray-900
                         "
                     >
-                        Users
+                        User Management
                     </h2>
 
                     <p
@@ -180,7 +187,8 @@ export default function UserTable({
                             text-gray-500
                         "
                     >
-                        Manage platform users and account status.
+                        Manage platform users and
+                        account status.
                     </p>
                 </div>
 
@@ -196,7 +204,10 @@ export default function UserTable({
                         text-blue-700
                     "
                 >
-                    {filteredUsers.length} users
+                    {filteredUsers.length}{" "}
+                    {filteredUsers.length === 1
+                        ? "user"
+                        : "users"}
                 </span>
             </div>
 
@@ -206,7 +217,7 @@ export default function UserTable({
                 <div
                     className="
                         relative
-                        max-w-md
+                        max-w-xl
                     "
                 >
                     <Search
@@ -230,9 +241,7 @@ export default function UserTable({
                                 event.target.value
                             )
                         }
-                        placeholder="
-                            Search users by name, email, role or status...
-                        "
+                        placeholder="Search by name, email, role or status..."
                         className="
                             w-full
                             rounded-xl
@@ -256,7 +265,7 @@ export default function UserTable({
                 </div>
             </div>
 
-            {/* EMPTY STATE */}
+            {/* TABLE */}
 
             {paginatedUsers.length === 0 ? (
                 <div
@@ -276,13 +285,11 @@ export default function UserTable({
                 </div>
             ) : (
                 <>
-                    {/* TABLE */}
-
                     <div className="overflow-x-auto">
                         <table
                             className="
                                 w-full
-                                min-w-[700px]
+                                min-w-[760px]
                                 text-left
                             "
                         >
@@ -324,6 +331,7 @@ export default function UserTable({
                                             className="
                                                 border-b
                                                 last:border-0
+                                                hover:bg-gray-50
                                             "
                                         >
                                             <td
@@ -333,7 +341,8 @@ export default function UserTable({
                                                     text-gray-900
                                                 "
                                             >
-                                                {user.name}
+                                                {user.name ||
+                                                    "N/A"}
                                             </td>
 
                                             <td
@@ -357,7 +366,9 @@ export default function UserTable({
                                                         text-gray-700
                                                     "
                                                 >
-                                                    {user.role}
+                                                    {
+                                                        user.role
+                                                    }
                                                 </span>
                                             </td>
 
@@ -481,15 +492,11 @@ export default function UserTable({
                         >
                             Showing{" "}
                             <span className="font-medium text-gray-900">
-                                {startIndex + 1}
+                                {firstVisibleUser}
                             </span>{" "}
                             to{" "}
                             <span className="font-medium text-gray-900">
-                                {Math.min(
-                                    startIndex +
-                                        paginatedUsers.length,
-                                    filteredUsers.length
-                                )}
+                                {lastVisibleUser}
                             </span>{" "}
                             of{" "}
                             <span className="font-medium text-gray-900">
@@ -498,104 +505,137 @@ export default function UserTable({
                             users
                         </p>
 
-                        <div
-                            className="
-                                flex
-                                items-center
-                                gap-2
-                            "
-                        >
-                            <button
-                                type="button"
-                                disabled={
-                                    safeCurrentPage ===
-                                    1
-                                }
-                                onClick={() =>
-                                    setCurrentPage(
-                                        (page) =>
-                                            Math.max(
-                                                1,
-                                                page - 1
-                                            )
-                                    )
-                                }
+                        {totalPages > 1 && (
+                            <div
                                 className="
-                                    inline-flex
+                                    flex
                                     items-center
                                     gap-1
-                                    rounded-lg
-                                    border
-                                    border-gray-200
-                                    bg-white
-                                    px-3
-                                    py-2
-                                    text-sm
-                                    font-medium
-                                    text-gray-700
-                                    transition
-                                    hover:bg-gray-50
-                                    disabled:cursor-not-allowed
-                                    disabled:opacity-40
                                 "
                             >
-                                <ChevronLeft className="h-4 w-4" />
-                                Previous
-                            </button>
+                                {/* PREVIOUS */}
 
-                            <span
-                                className="
-                                    rounded-lg
-                                    bg-gray-100
-                                    px-3
-                                    py-2
-                                    text-sm
-                                    font-medium
-                                    text-gray-700
-                                "
-                            >
-                                {safeCurrentPage} /{" "}
-                                {totalPages}
-                            </span>
+                                <button
+                                    type="button"
+                                    aria-label="Previous page"
+                                    disabled={
+                                        currentPage ===
+                                        1
+                                    }
+                                    onClick={() =>
+                                        setCurrentPage(
+                                            (page) =>
+                                                Math.max(
+                                                    1,
+                                                    page -
+                                                        1
+                                                )
+                                        )
+                                    }
+                                    className="
+                                        flex
+                                        h-9
+                                        w-9
+                                        items-center
+                                        justify-center
+                                        rounded-lg
+                                        border
+                                        border-gray-200
+                                        bg-white
+                                        text-gray-600
+                                        transition
+                                        hover:bg-gray-50
+                                        disabled:cursor-not-allowed
+                                        disabled:opacity-40
+                                    "
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </button>
 
-                            <button
-                                type="button"
-                                disabled={
-                                    safeCurrentPage >=
-                                    totalPages
-                                }
-                                onClick={() =>
-                                    setCurrentPage(
-                                        (page) =>
-                                            Math.min(
-                                                totalPages,
-                                                page + 1
-                                            )
-                                    )
-                                }
-                                className="
-                                    inline-flex
-                                    items-center
-                                    gap-1
-                                    rounded-lg
-                                    border
-                                    border-gray-200
-                                    bg-white
-                                    px-3
-                                    py-2
-                                    text-sm
-                                    font-medium
-                                    text-gray-700
-                                    transition
-                                    hover:bg-gray-50
-                                    disabled:cursor-not-allowed
-                                    disabled:opacity-40
-                                "
-                            >
-                                Next
-                                <ChevronRight className="h-4 w-4" />
-                            </button>
-                        </div>
+                                {/* PAGE NUMBERS */}
+
+                                <div
+                                    className="
+                                        flex
+                                        items-center
+                                        gap-1
+                                    "
+                                >
+                                    {pageNumbers.map(
+                                        (page) => (
+                                            <button
+                                                key={page}
+                                                type="button"
+                                                onClick={() =>
+                                                    setCurrentPage(
+                                                        page
+                                                    )
+                                                }
+                                                className={`
+                                                    flex
+                                                    h-9
+                                                    min-w-9
+                                                    items-center
+                                                    justify-center
+                                                    rounded-lg
+                                                    px-2
+                                                    text-sm
+                                                    font-medium
+                                                    transition
+                                                    ${
+                                                        currentPage ===
+                                                        page
+                                                            ? "bg-gray-900 text-white"
+                                                            : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                                                    }
+                                                `}
+                                            >
+                                                {page}
+                                            </button>
+                                        )
+                                    )}
+                                </div>
+
+                                {/* NEXT */}
+
+                                <button
+                                    type="button"
+                                    aria-label="Next page"
+                                    disabled={
+                                        currentPage ===
+                                        totalPages
+                                    }
+                                    onClick={() =>
+                                        setCurrentPage(
+                                            (page) =>
+                                                Math.min(
+                                                    totalPages,
+                                                    page +
+                                                        1
+                                                )
+                                        )
+                                    }
+                                    className="
+                                        flex
+                                        h-9
+                                        w-9
+                                        items-center
+                                        justify-center
+                                        rounded-lg
+                                        border
+                                        border-gray-200
+                                        bg-white
+                                        text-gray-600
+                                        transition
+                                        hover:bg-gray-50
+                                        disabled:cursor-not-allowed
+                                        disabled:opacity-40
+                                    "
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </>
             )}
