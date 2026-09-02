@@ -99,29 +99,3 @@ Users without the required role are redirected to:
 ```text
 /unauthorized
 ```
-Rental Workflow
-Customer browses gear
-        ↓
-View gear details
-        ↓
-Select rental dates
-        ↓
-Create rental
-        ↓
-Provider confirms rental
-        ↓
-Customer opens rental
-        ↓
-Stripe Checkout
-        ↓
-Successful payment
-        ↓
-Payment confirmation
-        ↓
-Rental becomes PAID
-        ↓
-Provider pickup
-        ↓
-Provider return
-        ↓
-Customer submits review
