@@ -1,6 +1,7 @@
 import UserTable from "./_components/UserTable";
 import GearTable from "./_components/GearTable";
 import RentalTable from "./_components/RentalTable";
+import AdminLogoutButton from "./_components/AdminLogoutButton";
 
 import {
     fetchUsers,
@@ -73,29 +74,39 @@ export default async function AdminDashboard() {
                     mb-8
                     flex
                     flex-col
-                    gap-2
+                    gap-4
+                    sm:flex-row
+                    sm:items-start
+                    sm:justify-between
                     "
                 >
 
-                    <h1
-                        className="
-                        text-3xl
-                        font-bold
-                        tracking-tight
-                        text-gray-900
-                        sm:text-4xl
-                        "
-                    >
-                        Admin Dashboard
-                    </h1>
+                    <div>
+
+                        <h1
+                            className="
+                            text-3xl
+                            font-bold
+                            tracking-tight
+                            text-gray-900
+                            sm:text-4xl
+                            "
+                        >
+                            Admin Dashboard
+                        </h1>
 
 
-                    <p className="text-gray-500">
+                        <p className="text-gray-500">
 
-                        Manage users, gear listings,
-                        and rental orders.
+                            Manage users, gear listings,
+                            and rental orders.
 
-                    </p>
+                        </p>
+
+                    </div>
+
+
+                    <AdminLogoutButton />
 
                 </div>
 

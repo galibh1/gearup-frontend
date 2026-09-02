@@ -78,9 +78,7 @@ GearUp is an equipment rental platform built with Next.js, TypeScript, and a RES
 - `/payment/success`
 - `/payment/cancel`
 
-### Other
 
-- `/unauthorized`
 
 ## Authentication
 
@@ -96,6 +94,3 @@ Protected dashboard routes are controlled by the application's route protection 
 
 Users without the required role are redirected to:
 
-```text
-/unauthorized
-```
