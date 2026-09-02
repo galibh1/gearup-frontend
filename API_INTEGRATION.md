@@ -101,16 +101,19 @@ Frontend handles API errors using:
 # Frontend Architecture
 
 
-components
-|
-↓
-Server Actions / Hooks
-|
-↓
-Services
-|
-↓
-Backend API
+                User Interface
+                     |
+                     ↓
+              React Components
+                     |
+                     ↓
+      Server Actions / Custom Hooks
+                     |
+                     ↓
+              Service Layer
+                     |
+                     ↓
+              Backend REST API
 
 
 Services:
