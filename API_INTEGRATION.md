@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document maps the GearUp frontend components with backend REST API endpoints.
+This document maps the GearUp frontend components with backend API endpoints.
 
 The frontend integrates APIs for authentication, gear management, rentals, payments, reviews, provider operations, and admin management.
 
