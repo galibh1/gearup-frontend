@@ -90,7 +90,5 @@ Supported roles:
 - PROVIDER
 - ADMIN
 
-Protected dashboard routes are controlled by the application's route protection layer.
 
-Users without the required role are redirected to:
 
